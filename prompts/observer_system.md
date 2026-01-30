@@ -24,9 +24,9 @@ Output must match the response format with fields:
 - skills_delta: list of { skill, delta, evidence_turn_id, note }
 
 Flags guidelines:
-- off_topic = true if the answer clearly does not address the current question/topic.
+- off_topic = true if the answer clearly does not address the current question/topic (BUT DON'T SUBMIT IT if the candidate asks his own question (role_reversal))
 - hallucination = true if the answer contains confident but likely-false claims or contradictions with the given context.
-- role_reversal = true if the candidate tries to interview the interviewer or refuses to answer.
+- role_reversal = true if the candidate tries to interview the interviewer or refuses to answer (or the candidate will ask a question (about the company or an additional question, clarifying the interviewer's question))
 - contradiction = true if the answer contradicts their prior statements in recent_turns.
 - ask_deeper = true if you want a deeper follow-up on the same topic.
 - recommended_next_action must be one of: ASK_DEEPER, CHANGE_TOPIC, HANDLE_OFFTOPIC, HANDLE_HALLUCINATION, HANDLE_ROLE_REVERSAL, WRAP_UP.
