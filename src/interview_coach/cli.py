@@ -33,7 +33,7 @@ def _prompt(text: str) -> str:
     raw_bytes = sys.stdin.buffer.readline()
     if not raw_bytes:
         logging.info("CLI: input EOF")
-        return ""
+        raise EOFError
     lines = [raw_bytes]
     extra_lines = 0
     # Capture pasted multi-line input without requiring an extra blank line.
@@ -122,12 +122,59 @@ def _update_observer_reports(state: dict[str, Any]) -> None:
         reports.append(report)
 
 
-def run_cli() -> None:
+def _invoke_graph(
+    state: dict[str, Any],
+    graph: Any,
+    logger: InterviewLogger,
+    run_path: str,
+    last_logged_turn_id: int,
+) -> tuple[dict[str, Any], int]:
+    state = graph.invoke(state)
+    _update_observer_reports(state)
+    turn_log = _extract_turn_log(state)
+    if turn_log and turn_log.turn_id > last_logged_turn_id:
+        logger.append_turn(turn_log)
+        last_logged_turn_id = turn_log.turn_id
+        logger.save(run_path)
+    return state, last_logged_turn_id
+
+
+def _fallback_feedback(reason: str) -> str:
+    return f"Интервью завершено без финального отчёта. Причина: {reason}."
+
+
+def _resolve_final_feedback(state: dict[str, Any], reason: str) -> str:
+    final_text = state.get("final_feedback_text")
+    if isinstance(final_text, str) and final_text.strip():
+        return final_text.strip()
+    final_feedback = state.get("final_feedback")
+    if isinstance(final_feedback, str) and final_feedback.strip():
+        return final_feedback.strip()
+    if final_feedback is not None:
+        return str(final_feedback)
+    return _fallback_feedback(reason)
+
+
+def _finalize_and_save(
+    state: dict[str, Any],
+    logger: InterviewLogger,
+    run_path: str,
+    reason: str,
+) -> None:
+    final_text = _resolve_final_feedback(state, reason)
+    logger.set_final_feedback(final_text)
+    logger.save(run_path)
+    print("\nФинальный отчёт:\n" + final_text)
+
+
+def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%H:%M:%S",
     )
+    if max_turns < 1:
+        raise ValueError("max_turns must be >= 1")
     intake = _collect_intake()
     logger = InterviewLogger()
     logger.start_session(intake)
@@ -147,40 +194,95 @@ def run_cli() -> None:
     }
 
     graph = build_graph()
-    run_path = f"runs/interview_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    resolved_run_path = run_path or (
+        f"runs/interview_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    )
     last_printed_message = ""
     last_logged_turn_id = 0
+    stop_reason: str | None = None
 
     print("\nГенерация ответа...", flush=True)
     logging.info("CLI: invoking graph (initial)")
-    state = graph.invoke(state)
-    _update_observer_reports(state)
-    turn_log = _extract_turn_log(state)
-    if turn_log and turn_log.turn_id > last_logged_turn_id:
-        logger.append_turn(turn_log)
-        last_logged_turn_id = turn_log.turn_id
-        logger.save(run_path)
+    state, last_logged_turn_id = _invoke_graph(
+        state,
+        graph,
+        logger,
+        resolved_run_path,
+        last_logged_turn_id,
+    )
     last_message = state.get("last_interviewer_message") or ""
     if last_message and last_message != last_printed_message:
         print(f"\nИнтервьюер: {last_message}")
         last_printed_message = last_message
+    if last_logged_turn_id >= max_turns:
+        print(f"\nДостигнут лимит ходов ({max_turns}). Интервью завершается.")
+        state["stop_requested"] = True
+        stop_reason = f"достигнут лимит ходов (max_turns={max_turns})"
+        try:
+            state, last_logged_turn_id = _invoke_graph(
+                state,
+                graph,
+                logger,
+                resolved_run_path,
+                last_logged_turn_id,
+            )
+        except Exception:
+            logging.exception("CLI: failed to finalize after max_turns")
+        _finalize_and_save(state, logger, resolved_run_path, stop_reason)
+        return
 
     while True:
         print("\nОжидание ответа кандидата...", flush=True)
-        user_message = _prompt("\nКандидат: ")
-        if _should_stop(user_message):
+        try:
+            user_message = _prompt("\nКандидат: ")
+            if _should_stop(user_message):
+                state["stop_requested"] = True
+                stop_reason = "команда stop"
+            state["last_user_message"] = user_message
+        except EOFError:
+            print("\nEOF: интервью завершается.", flush=True)
             state["stop_requested"] = True
-        state["last_user_message"] = user_message
+            state["last_user_message"] = ""
+            stop_reason = "EOF"
+            try:
+                state, last_logged_turn_id = _invoke_graph(
+                    state,
+                    graph,
+                    logger,
+                    resolved_run_path,
+                    last_logged_turn_id,
+                )
+            except Exception:
+                logging.exception("CLI: failed to finalize after EOF")
+            _finalize_and_save(state, logger, resolved_run_path, stop_reason)
+            break
+        except KeyboardInterrupt:
+            print("\nInterrupted: интервью завершается.", flush=True)
+            state["stop_requested"] = True
+            state["last_user_message"] = ""
+            stop_reason = "KeyboardInterrupt"
+            try:
+                state, last_logged_turn_id = _invoke_graph(
+                    state,
+                    graph,
+                    logger,
+                    resolved_run_path,
+                    last_logged_turn_id,
+                )
+            except Exception:
+                logging.exception("CLI: failed to finalize after KeyboardInterrupt")
+            _finalize_and_save(state, logger, resolved_run_path, stop_reason)
+            break
 
         print("\nГенерация ответа...", flush=True)
         logging.info("CLI: invoking graph (turn)")
-        state = graph.invoke(state)
-        _update_observer_reports(state)
-
-        turn_log = _extract_turn_log(state)
-        if turn_log and turn_log.turn_id > last_logged_turn_id:
-            logger.append_turn(turn_log)
-            last_logged_turn_id = turn_log.turn_id
+        state, last_logged_turn_id = _invoke_graph(
+            state,
+            graph,
+            logger,
+            resolved_run_path,
+            last_logged_turn_id,
+        )
 
         last_message = state.get("last_interviewer_message") or ""
         if last_message and last_message != last_printed_message:
@@ -190,17 +292,38 @@ def run_cli() -> None:
         final_feedback = state.get("final_feedback")
         final_feedback_text = state.get("final_feedback_text")
         if final_feedback is not None:
-            logger.set_final_feedback(final_feedback_text or final_feedback)
-            logger.save(run_path)
-            if final_feedback_text:
-                print("\nФинальный отчёт:\n" + final_feedback_text)
-            else:
-                print("\nФинальный отчёт:")
-                print(final_feedback)
+            _finalize_and_save(
+                state,
+                logger,
+                resolved_run_path,
+                stop_reason or "запрошен финальный отчёт",
+            )
+            break
+        if last_logged_turn_id >= max_turns:
+            print(f"\nДостигнут лимит ходов ({max_turns}). Интервью завершается.")
+            state["stop_requested"] = True
+            stop_reason = f"достигнут лимит ходов (max_turns={max_turns})"
+            try:
+                state, last_logged_turn_id = _invoke_graph(
+                    state,
+                    graph,
+                    logger,
+                    resolved_run_path,
+                    last_logged_turn_id,
+                )
+            except Exception:
+                logging.exception("CLI: failed to finalize after max_turns")
+            _finalize_and_save(state, logger, resolved_run_path, stop_reason)
             break
 
-        logger.save(run_path)
+        logger.save(resolved_run_path)
 
 
 if __name__ == "__main__":
-    run_cli()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-turns", type=int, default=12, help="Max interview turns")
+    args = parser.parse_args()
+
+    run_cli(max_turns=args.max_turns)
