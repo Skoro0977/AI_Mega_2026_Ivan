@@ -13,7 +13,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from src.interview_coach.models import FinalFeedback, ObserverReport, PlannedTopics
+from src.interview_coach.models import FinalFeedback, ObserverReport, ObserverRoutingDecision, PlannedTopics
 from src.interview_coach.prompts import load_prompt
 from src.interview_coach.settings import get_settings
 
@@ -79,6 +79,8 @@ def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
         "intake": _compact_intake(state.get("intake")),
         "topic": state.get("topic"),
         "difficulty": state.get("difficulty"),
+        "planned_topics": state.get("planned_topics") or [],
+        "current_topic_index": state.get("current_topic_index") or 0,
         "recent_turns": _compact_turns(state.get("turns")),
     }
     context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)
@@ -135,7 +137,7 @@ def get_observer_agent(model: str, temperature: float, max_retries: int) -> Any:
     if key not in _OBSERVER_CACHE:
         _OBSERVER_CACHE[key] = create_agent(
             build_model(*key),
-            response_format=ObserverReport,
+            response_format=ObserverRoutingDecision,
         )
     return _OBSERVER_CACHE[key]
 

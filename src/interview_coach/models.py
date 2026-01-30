@@ -100,6 +100,7 @@ class ObserverFlags(BaseModel):
     hallucination: bool = False
     contradiction: bool = False
     role_reversal: bool = False
+    ask_deeper: bool = False
 
 
 class TurnLog(BaseModel):
@@ -168,6 +169,26 @@ class ObserverReport(BaseModel):
     recommended_question_style: str
     fact_check_notes: str | None = None
     skills_delta: dict[str, float] | None = None
+
+
+class ObserverRoutingDecision(BaseModel):
+    """Observer routing output for topic control and expert selection."""
+
+    ask_deeper: bool
+    advance_topic: bool
+    expert_roles: list[ExpertRole]
+    reasoning_notes: str | None = None
+
+    @field_validator("expert_roles")
+    @classmethod
+    def validate_roles(cls, value: list[ExpertRole]) -> list[ExpertRole]:
+        unique: list[ExpertRole] = []
+        for role in value:
+            if role not in unique:
+                unique.append(role)
+        if not 1 <= len(unique) <= 2:
+            raise ValueError("expert_roles must contain 1 or 2 unique roles")
+        return unique
 
     @field_validator("answer_quality", mode="before")
     @classmethod
