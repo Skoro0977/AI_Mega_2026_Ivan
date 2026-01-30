@@ -127,6 +127,7 @@ def _build_payload(
         "last_user_message": state.get("last_user_message") or "",
         "last_interviewer_message": state.get("last_interviewer_message") or "",
         "strategy": strategy,
+        "difficulty": state.get("difficulty"),
         "topics_covered": state.get("topics_covered") or [],
         "asked_questions": state.get("asked_questions") or [],
     }
