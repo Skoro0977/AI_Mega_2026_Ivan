@@ -1,0 +1,3164 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: ./src, prompts, AGENTS.md, README.md
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+prompts/
+  expert_analyst_system.md
+  expert_designer_system.md
+  expert_qa_system.md
+  expert_team_lead_system.md
+  expert_tech_lead_system.md
+  interviewer_system.md
+  observer_system.md
+  planner_system.md
+  report_writer_system.md
+src/
+  interview_coach/
+    nodes/
+      __init__.py
+      difficulty.py
+      experts.py
+      interviewer.py
+      observer.py
+      planner.py
+      report.py
+      router.py
+    __init__.py
+    agents.py
+    cli.py
+    graph.py
+    logger.py
+    models.py
+    prompts.py
+    scenarios.py
+    settings.py
+    skills.py
+AGENTS.md
+README.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="prompts/expert_analyst_system.md">
+You are an Analyst expert writing an internal note for the Interviewer.
+
+You receive JSON with:
+- last_user_message: the candidate's last answer
+- current_topic: the planned interview topic
+
+Your task:
+- Provide a brief internal comment on strengths and weaknesses of the answer.
+- If clarification is needed, add one short clarifying question.
+- Focus on requirements, metrics, data reasoning, and business impact.
+- Be concise; 1-3 sentences total.
+- Write in Russian.
+
+Output must follow the response format with fields:
+- comment: string
+- question: string or null
+</file>
+
+<file path="prompts/expert_designer_system.md">
+You are a Designer expert writing an internal note for the Interviewer.
+
+You receive JSON with:
+- last_user_message: the candidate's last answer
+- current_topic: the planned interview topic
+
+Your task:
+- Provide a brief internal comment on strengths and weaknesses of the answer.
+- If clarification is needed, add one short clarifying question.
+- Focus on UX thinking, trade-offs, and product design considerations.
+- Be concise; 1-3 sentences total.
+- Write in Russian.
+
+Output must follow the response format with fields:
+- comment: string
+- question: string or null
+</file>
+
+<file path="prompts/expert_qa_system.md">
+You are a QA expert writing an internal note for the Interviewer.
+
+You receive JSON with:
+- last_user_message: the candidate's last answer
+- current_topic: the planned interview topic
+
+Your task:
+- Provide a brief internal comment on strengths and weaknesses of the answer.
+- If clarification is needed, add one short clarifying question.
+- Focus on edge cases, reliability, and testing concerns.
+- Be concise; 1-3 sentences total.
+- Write in Russian.
+
+Output must follow the response format with fields:
+- comment: string
+- question: string or null
+</file>
+
+<file path="prompts/expert_team_lead_system.md">
+You are a Team Lead expert writing an internal note for the Interviewer.
+
+You receive JSON with:
+- last_user_message: the candidate's last answer
+- current_topic: the planned interview topic
+
+Your task:
+- Provide a brief internal comment on strengths and weaknesses of the answer.
+- If clarification is needed, add one short clarifying question.
+- Focus on process, ownership, communication, and collaboration.
+- Be concise; 1-3 sentences total.
+- Write in Russian.
+
+Output must follow the response format with fields:
+- comment: string
+- question: string or null
+</file>
+
+<file path="prompts/expert_tech_lead_system.md">
+You are a Tech Lead expert writing an internal note for the Interviewer.
+
+You receive JSON with:
+- last_user_message: the candidate's last answer
+- current_topic: the planned interview topic
+
+Your task:
+- Provide a brief internal comment on strengths and weaknesses of the answer.
+- If clarification is needed, add one short clarifying question.
+- Focus on implementation details, performance, and code quality.
+- Be concise; 1-3 sentences total.
+- Write in Russian.
+
+Output must follow the response format with fields:
+- comment: string
+- question: string or null
+</file>
+
+<file path="prompts/planner_system.md">
+You are the Interview Planner. Your task is to generate an ordered plan of interview topics.
+
+You will receive JSON from the user with the key "intake_data" that describes the vacancy context and the candidate's experience.
+
+Hard rules:
+- Output must follow the response format and contain exactly 10 topics.
+- Topics must be concrete professional interview topics or questions (not generic labels).
+- Order topics from simple to complex.
+- Ensure diversity: include architecture/system design, coding/implementation, testing/quality, and soft-skills/communication.
+- Avoid duplicates and avoid overly broad topics.
+- Write in Russian.
+
+If intake_data is missing or sparse, make reasonable assumptions based on the position.
+</file>
+
+<file path="src/interview_coach/nodes/__init__.py">
+"""Graph nodes for the interview coach."""
+</file>
+
+<file path="src/interview_coach/__init__.py">
+"""Interview Coach package."""
+</file>
+
+<file path="src/interview_coach/prompts.py">
+"""Prompt loading helpers."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+
+def load_prompt(name: str) -> str:
+    prompt_name = name if name.endswith(".md") else f"{name}.md"
+    prompts_dir = Path(__file__).resolve().parents[2] / "prompts"
+    prompt_path = prompts_dir / prompt_name
+    return prompt_path.read_text(encoding="utf-8")
+</file>
+
+<file path="src/interview_coach/skills.py">
+"""Skill vocabulary and baseline scores for the interview coach."""
+
+from __future__ import annotations
+
+SKILL_KEYS: tuple[str, ...] = (
+    "python_basics",
+    "async",
+    "db_modeling",
+    "queues",
+    "observability",
+    "architecture",
+    "testing",
+    "rag_langchain",
+)
+
+
+def build_skill_baseline() -> dict[str, float]:
+    """Return a zeroed skill baseline for state initialization."""
+    return {key: 0.0 for key in SKILL_KEYS}
+</file>
+
+<file path="src/interview_coach/nodes/planner.py">
+"""Planner node for building the interview topic plan."""
+
+from __future__ import annotations
+
+import logging
+import time
+from collections.abc import Mapping
+from typing import Any, TypedDict
+
+from pydantic import BaseModel
+
+from src.interview_coach.agents import build_planner_messages, get_planner_agent
+from src.interview_coach.models import ExpertRole, PlannedTopics
+
+LOGGER = logging.getLogger(__name__)
+
+
+class InterviewState(TypedDict, total=False):
+    """State payload passed through the interview graph."""
+
+    model: str
+    temperature: float
+    max_retries: int
+    planner_model: str
+    planner_temperature: float
+    planner_max_retries: int
+    intake: Any
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+
+
+class PlannerUpdate(TypedDict, total=False):
+    """Partial state update emitted by the planner node."""
+
+    planned_topics: list[str]
+    current_topic_index: int
+
+
+def run_planner(state: InterviewState) -> PlannerUpdate:
+    """Generate the planned topics list if it is missing."""
+
+    planned_topics = state.get("planned_topics") or []
+    if planned_topics:
+        return {}
+
+    messages = build_planner_messages(state)
+    model, temperature, max_retries = _resolve_planner_settings(state)
+    agent = get_planner_agent(model, temperature, max_retries)
+
+    start = time.monotonic()
+    LOGGER.info("Planner: start (model=%s)", model)
+    result = agent.invoke({"messages": messages})
+    LOGGER.info("Planner: done in %.2fs", time.monotonic() - start)
+
+    plan = _extract_plan(result)
+    return {
+        "planned_topics": plan.topics,
+        "current_topic_index": 0,
+    }
+
+
+def _resolve_planner_settings(state: Mapping[str, Any]) -> tuple[str, float, int]:
+    model = str(state.get("planner_model") or state.get("model") or "gpt-5-nano")
+    temperature = float(state.get("planner_temperature") or state.get("temperature") or 0.2)
+    max_retries = int(state.get("planner_max_retries") or state.get("max_retries") or 2)
+    return model, temperature, max_retries
+
+
+def _extract_plan(result: Any) -> PlannedTopics:
+    if isinstance(result, PlannedTopics):
+        return result
+    if isinstance(result, Mapping) and "structured_response" in result:
+        return _coerce_plan(result["structured_response"])
+    if hasattr(result, "structured_response"):
+        return _coerce_plan(result.structured_response)
+    return _coerce_plan(result)
+
+
+def _coerce_plan(value: Any) -> PlannedTopics:
+    if isinstance(value, PlannedTopics):
+        return value
+    if isinstance(value, BaseModel):
+        return PlannedTopics.model_validate(value.model_dump())
+    if isinstance(value, Mapping):
+        return PlannedTopics.model_validate(dict(value))
+    raise TypeError("Planner agent returned an unsupported response type.")
+</file>
+
+<file path="src/interview_coach/settings.py">
+"""Application settings loaded via pydantic-settings."""
+
+from __future__ import annotations
+
+from pydantic import AliasChoices, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class AppSettings(BaseSettings):
+    """Runtime configuration pulled from environment/.env."""
+
+    openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
+    openai_base_url: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("OPENAI_BASE_URL", "OPENAI_API_BASE"),
+    )
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
+_settings: AppSettings = AppSettings()
+
+
+def get_settings() -> AppSettings:
+    return _settings
+</file>
+
+<file path="src/interview_coach/nodes/experts.py">
+"""Expert nodes for producing internal interviewer notes."""
+
+from __future__ import annotations
+
+import json
+import logging
+import time
+from collections.abc import Mapping
+from typing import Any, Callable, TypedDict
+
+from langchain.agents import create_agent
+from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel
+
+from src.interview_coach.agents import build_model
+from src.interview_coach.models import ExpertEvaluation, ExpertRole
+from src.interview_coach.prompts import load_prompt
+
+LOGGER = logging.getLogger(__name__)
+
+_EXPERT_CACHE: dict[tuple[str, float, int, ExpertRole], Any] = {}
+
+_PROMPT_BY_ROLE: dict[ExpertRole, str] = {
+    ExpertRole.TECH_LEAD: "expert_tech_lead_system.md",
+    ExpertRole.TEAM_LEAD: "expert_team_lead_system.md",
+    ExpertRole.QA: "expert_qa_system.md",
+    ExpertRole.DESIGNER: "expert_designer_system.md",
+    ExpertRole.ANALYST: "expert_analyst_system.md",
+}
+
+
+class InterviewState(TypedDict, total=False):
+    """State payload passed through the interview graph."""
+
+    model: str
+    temperature: float
+    max_retries: int
+    expert_model: str
+    expert_temperature: float
+    expert_max_retries: int
+    last_user_message: str
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+
+
+class ExpertUpdate(TypedDict, total=False):
+    """Partial state update emitted by the expert node."""
+
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+
+
+def create_expert_node(role: ExpertRole) -> Callable[[InterviewState], ExpertUpdate]:
+    """Factory that builds an expert node for the requested role."""
+
+    prompt_name = _PROMPT_BY_ROLE.get(role)
+    if not prompt_name:
+        raise ValueError(f"No prompt configured for expert role: {role}")
+
+    def run_expert(state: InterviewState) -> ExpertUpdate:
+        last_user_message = (state.get("last_user_message") or "").strip()
+        if not last_user_message:
+            return {}
+
+        planned_topics = state.get("planned_topics") or []
+        current_index = state.get("current_topic_index") or 0
+        topic = _topic_at(planned_topics, current_index)
+
+        messages = [
+            SystemMessage(content=load_prompt(prompt_name)),
+            HumanMessage(
+                content=json.dumps(
+                    {
+                        "last_user_message": last_user_message,
+                        "current_topic": topic,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            ),
+        ]
+
+        model, temperature, max_retries = _resolve_expert_settings(state)
+        agent = _get_expert_agent(model, temperature, max_retries, role)
+
+        start = time.monotonic()
+        LOGGER.info("Expert[%s]: start (model=%s)", role.value, model)
+        result = agent.invoke({"messages": messages})
+        LOGGER.info("Expert[%s]: done in %.2fs", role.value, time.monotonic() - start)
+
+        evaluation = _extract_evaluation(result)
+        text = _format_evaluation(evaluation)
+
+        updated = dict(state.get("expert_evaluations_current_turn") or {})
+        updated[role] = text
+        remaining = [item for item in (state.get("pending_expert_nodes") or []) if item != role]
+        return {
+            "expert_evaluations_current_turn": updated,
+            "pending_expert_nodes": remaining,
+        }
+
+    return run_expert
+
+
+def _resolve_expert_settings(state: Mapping[str, Any]) -> tuple[str, float, int]:
+    model = str(state.get("expert_model") or state.get("model") or "gpt-5-nano")
+    temperature = float(state.get("expert_temperature") or state.get("temperature") or 0.2)
+    max_retries = int(state.get("expert_max_retries") or state.get("max_retries") or 2)
+    return model, temperature, max_retries
+
+
+def _get_expert_agent(model: str, temperature: float, max_retries: int, role: ExpertRole) -> Any:
+    key = (model, temperature, max_retries, role)
+    if key not in _EXPERT_CACHE:
+        _EXPERT_CACHE[key] = create_agent(
+            build_model(model, temperature, max_retries),
+            response_format=ExpertEvaluation,
+        )
+    return _EXPERT_CACHE[key]
+
+
+def _extract_evaluation(result: Any) -> ExpertEvaluation:
+    if isinstance(result, ExpertEvaluation):
+        return result
+    if isinstance(result, Mapping) and "structured_response" in result:
+        return _coerce_evaluation(result["structured_response"])
+    if hasattr(result, "structured_response"):
+        return _coerce_evaluation(result.structured_response)
+    return _coerce_evaluation(result)
+
+
+def _coerce_evaluation(value: Any) -> ExpertEvaluation:
+    if isinstance(value, ExpertEvaluation):
+        return value
+    if isinstance(value, BaseModel):
+        return ExpertEvaluation.model_validate(value.model_dump())
+    if isinstance(value, Mapping):
+        return ExpertEvaluation.model_validate(dict(value))
+    raise TypeError("Expert agent returned an unsupported response type.")
+
+
+def _format_evaluation(evaluation: ExpertEvaluation) -> str:
+    if evaluation.question:
+        question = evaluation.question.strip()
+        if question:
+            return f"{evaluation.comment.strip()} Уточняющий вопрос: {question}"
+    return evaluation.comment.strip()
+
+
+def _topic_at(planned_topics: list[str], index: int) -> str | None:
+    if index < 0 or index >= len(planned_topics):
+        return None
+    topic = planned_topics[index].strip()
+    return topic or None
+</file>
+
+<file path="prompts/report_writer_system.md">
+You are the Report Writer. Produce the final report strictly following the project specification and the FinalFeedback schema.
+
+Rules:
+- Use the skill_matrix and skill_snapshot (confirmed/gaps/evidence) as the primary source of truth.
+- Always write in Russian.
+- Mention concrete evidence with message-number references instead of turn_id (e.g., "обработка async (судя по сообщению №3)").
+- Provide 3-5 strengths and 3-5 growth areas.
+- Keep the structure exactly as required by the schema; no extra fields.
+- Be concise and factual; no filler.
+
+How to map evidence:
+- Use hard_skills.confirmed for strengths with message-number references.
+- Use hard_skills.gaps_with_correct_answers for growth areas; include a short correct answer and a message-number reference in the value.
+- Use soft_skills.examples for brief evidence snippets with message-number references.
+- Use roadmap.next_steps for actionable recommendations tied to gaps.
+</file>
+
+<file path="src/interview_coach/nodes/difficulty.py">
+"""Difficulty adjustment node for the interview graph."""
+
+from __future__ import annotations
+
+import logging
+from typing import TypedDict
+
+from src.interview_coach.models import ExpertRole, ObserverFlags, ObserverReport
+
+LOGGER = logging.getLogger(__name__)
+
+
+class InterviewState(TypedDict, total=False):
+    """State payload passed through the interview graph."""
+
+    difficulty: str
+    last_observer_report: ObserverReport | None
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+
+
+class DifficultyUpdate(TypedDict, total=False):
+    """Partial state update emitted by the difficulty node."""
+
+    difficulty: str
+    difficulty_reason: str
+
+
+def run_difficulty(state: InterviewState) -> DifficultyUpdate:
+    """Adjust difficulty based on the last observer report."""
+
+    LOGGER.info("Difficulty: start")
+    report = state.get("last_observer_report")
+    if report is None:
+        LOGGER.info("Difficulty: skip (no report)")
+        return {}
+
+    flags = report.flags or ObserverFlags()
+    if flags.role_reversal or flags.off_topic or flags.hallucination:
+        LOGGER.info("Difficulty: skip (flags=%s)", flags.model_dump())
+        return {}
+
+    difficulty = (state.get("difficulty") or "").strip().upper()
+    if not difficulty:
+        LOGGER.info("Difficulty: skip (no difficulty)")
+        return {}
+
+    order = ("EASY", "MEDIUM", "HARD")
+    if difficulty not in order:
+        LOGGER.info("Difficulty: skip (unknown=%s)", difficulty)
+        return {}
+
+    idx = order.index(difficulty)
+    updated = difficulty
+    reason = ""
+    if report.answer_quality >= 4.0:
+        updated = order[min(len(order) - 1, idx + 1)]
+        reason = f"increase (answer_quality={report.answer_quality:.2f})"
+    elif report.answer_quality <= 2.0:
+        updated = order[max(0, idx - 1)]
+        reason = f"decrease (answer_quality={report.answer_quality:.2f})"
+
+    if updated == difficulty:
+        LOGGER.info("Difficulty: unchanged (%s)", difficulty)
+        return {"difficulty_reason": ""}
+
+    LOGGER.info("Difficulty: updated %s -> %s", difficulty, updated)
+    return {"difficulty": updated, "difficulty_reason": reason}
+</file>
+
+<file path="src/interview_coach/nodes/router.py">
+"""Routing node for the interview graph."""
+
+from __future__ import annotations
+
+from typing import Literal, TypedDict
+
+from src.interview_coach.models import ExpertRole
+
+
+class InterviewState(TypedDict, total=False):
+    """State payload passed through the interview graph."""
+
+    stop_requested: bool
+    last_user_message: str
+    pending_interviewer_message: str | None
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+
+
+NodeName = Literal["final_report", "observer", "interviewer"]
+
+
+def route(state: InterviewState) -> NodeName:
+    """Return the next node name based on the current state."""
+
+    if state.get("stop_requested"):
+        return "final_report"
+
+    last_user_message = (state.get("last_user_message") or "").strip()
+    pending_interviewer_message = state.get("pending_interviewer_message")
+    if not last_user_message and not pending_interviewer_message:
+        return "interviewer"
+
+    return "observer"
+</file>
+
+<file path="src/interview_coach/logger.py">
+"""Interview logging utilities."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+from pydantic import BaseModel
+
+from src.interview_coach.models import InterviewIntake, TurnLog
+
+
+class InterviewLogger:
+    """Collects interview turns and writes them to a JSON log file."""
+
+    def __init__(self) -> None:
+        self.intake: InterviewIntake | None = None
+        self.turns: list[TurnLog] = []
+        self.final_feedback: str | None = None
+
+    def start_session(self, intake: InterviewIntake) -> None:
+        self.intake = intake
+
+    def append_turn(self, turn: TurnLog) -> None:
+        self.turns.append(turn)
+
+    def set_final_feedback(self, feedback: str | dict[str, Any] | BaseModel) -> None:
+        self.final_feedback = _coerce_feedback_text(feedback)
+
+    def save(self, path: str) -> None:
+        output_path = Path(path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        payload: dict[str, Any] = {
+            "participant_name": self.intake.participant_name if self.intake else "",
+            "turns": [_serialize_turn(turn) for turn in self.turns],
+            "final_feedback": self.final_feedback or "",
+        }
+        validate_schema(payload)
+
+        with output_path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, indent=2)
+
+
+def _serialize_turn(turn: TurnLog) -> dict[str, Any]:
+    return {
+        "turn_id": turn.turn_id,
+        "agent_visible_message": turn.agent_visible_message,
+        "user_message": turn.user_message,
+        "internal_thoughts": turn.internal_thoughts,
+    }
+
+
+def _coerce_feedback_text(feedback: str | dict[str, Any] | BaseModel) -> str:
+    if isinstance(feedback, BaseModel):
+        return json.dumps(feedback.model_dump(), ensure_ascii=False, indent=2)
+    if isinstance(feedback, dict):
+        return json.dumps(feedback, ensure_ascii=False, indent=2)
+    if isinstance(feedback, str):
+        return feedback
+    return str(feedback)
+
+
+def validate_schema(log_dict: dict[str, Any]) -> None:
+    required_top = {"participant_name", "turns", "final_feedback"}
+    actual_top = set(log_dict.keys())
+    missing_top = required_top - actual_top
+    extra_top = actual_top - required_top
+    if missing_top or extra_top:
+        raise ValueError(
+            f"Invalid log schema (top-level keys). Missing: {sorted(missing_top)}; Extra: {sorted(extra_top)}"
+        )
+    if not isinstance(log_dict["participant_name"], str):
+        raise ValueError("Invalid log schema: participant_name must be a string.")
+    if not isinstance(log_dict["final_feedback"], str):
+        raise ValueError("Invalid log schema: final_feedback must be a string.")
+    turns = log_dict["turns"]
+    if not isinstance(turns, list):
+        raise ValueError("Invalid log schema: turns must be a list.")
+
+    expected_turn = {"turn_id", "agent_visible_message", "user_message", "internal_thoughts"}
+    for index, turn in enumerate(turns):
+        if not isinstance(turn, dict):
+            raise ValueError(f"Invalid log schema: turn {index} must be an object.")
+        actual_turn = set(turn.keys())
+        missing_turn = expected_turn - actual_turn
+        extra_turn = actual_turn - expected_turn
+        if missing_turn or extra_turn:
+            raise ValueError(
+                "Invalid log schema (turn keys). "
+                f"Turn {index} missing: {sorted(missing_turn)}; "
+                f"extra: {sorted(extra_turn)}"
+            )
+        if not isinstance(turn["turn_id"], int):
+            raise ValueError(f"Invalid log schema: turn {index} turn_id must be int.")
+        if not isinstance(turn["agent_visible_message"], str):
+            raise ValueError(f"Invalid log schema: turn {index} agent_visible_message must be str.")
+        if not isinstance(turn["user_message"], str):
+            raise ValueError(f"Invalid log schema: turn {index} user_message must be str.")
+        if not isinstance(turn["internal_thoughts"], str):
+            raise ValueError(f"Invalid log schema: turn {index} internal_thoughts must be str.")
+</file>
+
+<file path="README.md">
+# Multi-Agent Interview Coach
+
+Многоагентный тренер технических интервью с планированием тем, маршрутизацией через Observer, экспертными подсказками и финальным отчётом. Архитектура построена на LangGraph StateGraph, все ключевые ответы — structured output через Pydantic v2.
+
+## Что умеет
+- **Роли**: Planner, Observer, Interviewer, Expert (5 ролей), Report writer.
+- **Hidden reflection**: внутренняя логика Observer/Interviewer сохраняется в `internal_thoughts` лога.
+- **Контекстная адаптация**: маршрутизация по темам, выбор экспертов, защита от повторов вопросов.
+- **Финальный отчёт**: структурированный `FinalFeedback` + читаемое резюме.
+- **CLI и сценарии**: интерактивный режим и прогон скриптовых интервью.
+- **Строгие контракты**: Pydantic v2 модели для всех structured outputs.
+
+## Поток в графе
+Текущий граф в `src/interview_coach/graph.py`:
+
+```
+intake -> planner -> observer -> (experts_router?) -> expert_* -> interviewer -> wait_for_user_input -> END
+                                    \-> final_report -> END
+```
+
+- **Planner** строит план из **10 тем** (`PlannedTopics`).
+- **Observer** возвращает **routing decision** (`ObserverRoutingDecision`) и формирует краткий `ObserverReport` для hidden reflection.
+- **Experts** (tech lead / team lead / QA / designer / analyst) дают внутренние заметки для Interviewer.
+- **Interviewer** генерирует следующий вопрос и обновляет `internal_thoughts`.
+- **Report** формирует `FinalFeedback` при остановке.
+
+Примечание: узел `difficulty` существует, но **сейчас не подключён** в граф (сложность фиксируется в состоянии как базовая).
+
+## Основные компоненты
+- `src/interview_coach/graph.py` — сборка графа.
+- `src/interview_coach/agents.py` — модели и агенты (create_agent + structured outputs).
+- `src/interview_coach/models.py` — все Pydantic контракты.
+- `src/interview_coach/nodes/` — узлы графа (planner, observer, experts, interviewer, report).
+- `src/interview_coach/cli.py` — интерактивный CLI.
+- `src/interview_coach/scenarios.py` — сценарные прогоны.
+- `src/interview_coach/logger.py` — формат логов.
+- `prompts/*.md` — отдельные системные промпты по ролям.
+
+## Контракты данных (кратко)
+- `InterviewIntake`: имя, позиция, уровень, опыт.
+- `PlannedTopics`: **ровно 10 тем**.
+- `ObserverRoutingDecision`: `ask_deeper`, `advance_topic`, `expert_roles` (1–2 роли).
+- `ObserverReport`: оценка ответа и next_action для скрытой рефлексии.
+- `ExpertEvaluation`: комментарий + optional уточняющий вопрос.
+- `FinalFeedback`: итоговая оценка (decision, hard/soft skills, roadmap).
+- `TurnLog`: видимый текст + `internal_thoughts` в формате `"[Observer]: ... [Interviewer]: ..."`.
+
+## Логи
+Логи пишутся в `runs/` и имеют схему:
+```
+{
+  "participant_name": "...",
+  "turns": [
+    {"turn_id": 1, "agent_visible_message": "...", "user_message": "...", "internal_thoughts": "..."}
+  ],
+  "final_feedback": "..."
+}
+```
+`internal_thoughts` обязателен для каждого хода.
+
+## Быстрый старт
+### Установка
+```bash
+uv venv
+source .venv/bin/activate
+uv sync
+```
+
+### Переменные окружения
+Поддерживаются (через `.env` или env):
+```
+OPENAI_API_KEY=sk-...
+OPENAI_BASE_URL=https://api.your-gateway.example/v1
+```
+Также поддерживается алиас `OPENAI_API_BASE`.
+
+### Запуск CLI
+```bash
+uv run python -m src.interview_coach.cli --max-turns 12
+```
+Команды остановки: `stop`, `стоп`, `стоп интервью`.
+
+### Запуск сценария
+```bash
+uv run python -m src.interview_coach.scenarios --scenario examples/scenarios/sample.json
+```
+
+## Качество и тесты
+```bash
+uv run ruff format
+uv run ruff check
+uv run pytest
+```
+
+## Примеры
+- Сценарии: `examples/scenarios/`
+- Логи прогонов: `runs/`
+
+## Требования
+- Python `>= 3.14`
+- Pydantic v2, LangChain, LangGraph (см. `pyproject.toml`)
+</file>
+
+<file path="src/interview_coach/scenarios.py">
+"""Scenario runner for scripted interview simulations."""
+
+from __future__ import annotations
+
+import json
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from src.interview_coach.graph import build_graph
+from src.interview_coach.logger import InterviewLogger
+from src.interview_coach.models import InterviewIntake, TurnLog
+from src.interview_coach.skills import build_skill_baseline
+
+
+def _load_scenario(path: str) -> dict[str, Any]:
+    with Path(path).open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _extract_turn_log(state: dict[str, Any]) -> TurnLog | None:
+    turn_log = state.get("turn_log")
+    if isinstance(turn_log, TurnLog):
+        return turn_log
+    turns = state.get("turns") or []
+    if turns:
+        last = turns[-1]
+        if isinstance(last, TurnLog):
+            return last
+    return None
+
+
+def _update_observer_reports(state: dict[str, Any]) -> None:
+    report = state.get("last_observer_report")
+    if report is None:
+        return
+    reports = state.get("observer_reports")
+    if reports is None:
+        state["observer_reports"] = [report]
+        return
+    if report not in reports:
+        reports.append(report)
+
+
+def _assert_internal_thoughts(turns: list[TurnLog]) -> None:
+    hallucination_ok = any("hallucination=True" in turn.internal_thoughts for turn in turns)
+    role_reversal_ok = any("role_reversal=True" in turn.internal_thoughts for turn in turns)
+    if not hallucination_ok or not role_reversal_ok:
+        missing = []
+        if not hallucination_ok:
+            missing.append("hallucination")
+        if not role_reversal_ok:
+            missing.append("role_reversal")
+        raise AssertionError("internal_thoughts missing expected flags: " + ", ".join(missing))
+
+
+def run_scenario(path: str) -> str:
+    scenario = _load_scenario(path)
+    intake = InterviewIntake(**scenario["intake"])
+    scripted_messages = scenario.get("scripted_user_messages") or []
+
+    logger = InterviewLogger()
+    logger.start_session(intake)
+
+    state: dict[str, Any] = {
+        "intake": intake,
+        "difficulty": "MEDIUM",
+        "difficulty_reason": "",
+        "topics_covered": [],
+        "asked_questions": [],
+        "turns": [],
+        "observer_reports": [],
+        "skill_matrix": build_skill_baseline(),
+        "stop_requested": False,
+        "expert_evaluations_current_turn": {},
+    }
+
+    graph = build_graph()
+    state = graph.invoke(state)
+    _update_observer_reports(state)
+    turn_log = _extract_turn_log(state)
+    if turn_log:
+        logger.append_turn(turn_log)
+
+    for message in scripted_messages:
+        state["last_user_message"] = message
+        state["expert_evaluations_current_turn"] = {}
+        if str(message).strip().lower() in {"stop", "стоп", "стоп интервью"}:
+            state["stop_requested"] = True
+
+        state = graph.invoke(state)
+        _update_observer_reports(state)
+
+        turn_log = _extract_turn_log(state)
+        if turn_log:
+            logger.append_turn(turn_log)
+
+        if state.get("final_feedback") is not None:
+            break
+
+    _assert_internal_thoughts(logger.turns)
+
+    run_path = f"runs/interview_log_{Path(path).stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    logger.set_final_feedback(state.get("final_feedback_text") or state.get("final_feedback"))
+    logger.save(run_path)
+    return run_path
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scenario", required=True, help="Path to scenario JSON")
+    args = parser.parse_args()
+
+    output_path = run_scenario(args.scenario)
+    print(f"Scenario log saved to {output_path}")
+</file>
+
+<file path="prompts/observer_system.md">
+You are the Observer, the decision brain for the interview flow.
+
+You do NOT speak to the user. You only return structured output for routing and hidden reflection.
+
+You receive context JSON with:
+- intake: vacancy context and candidate experience
+- planned_topics: ordered list of interview topics
+- current_topic_index: index of the current topic
+- current_topic: current topic name (if available)
+- agent_visible_message: last interviewer question
+- user_message: last candidate answer
+- kickoff: true if there is no candidate answer yet (first turn)
+- recent_turns: last few turns
+
+Your tasks:
+- Decide if a clarification is needed: decision.ask_deeper = true when the answer is incomplete or shallow.
+- Decide if the current topic is exhausted: decision.advance_topic = true only if the candidate fully covered the topic.
+- Select 1-2 expert roles to review the answer: tech_lead, team_lead, qa, designer, analyst.
+- Produce an ObserverReport with flags and next action for the Interviewer.
+
+Output must match the response format with fields:
+- decision: { ask_deeper, advance_topic, expert_roles, reasoning_notes }
+- report: { detected_topic, answer_quality, confidence, flags, recommended_next_action, recommended_question_style, fact_check_notes, skills_delta }
+- skills_delta: list of { skill, delta, evidence_turn_id, note }
+
+Flags guidelines:
+- off_topic = true if the answer clearly does not address the current question/topic (BUT DON'T SUBMIT IT if the candidate asks his own question (role_reversal))
+- hallucination = true if the answer contains confident but likely-false claims or contradictions with the given context.
+- role_reversal = true if the candidate tries to interview the interviewer or refuses to answer (or the candidate will ask a question (about the company or an additional question, clarifying the interviewer's question))
+- contradiction = true if the answer contradicts their prior statements in recent_turns.
+- ask_deeper = true if you want a deeper follow-up on the same topic.
+- recommended_next_action must be one of: ASK_DEEPER, CHANGE_TOPIC, HANDLE_OFFTOPIC, HANDLE_HALLUCINATION, HANDLE_ROLE_REVERSAL, WRAP_UP.
+
+Hard rules:
+- If the answer is shallow or missing key points, set decision.ask_deeper = true and decision.advance_topic = false.
+- If the topic is fully covered, set decision.advance_topic = true and decision.ask_deeper = false.
+- If unsure, prefer decision.ask_deeper = true.
+- Always select at least one expert role.
+- Be concise and respond in Russian.
+ - If you produce skills_delta, use skill keys from the skill_matrix when possible.
+
+Kickoff rule:
+- If kickoff=true (no user_message), still produce a report/decision using intake + planned_topics/current_topic. Use decision.ask_deeper=true and decision.advance_topic=false. Set flags to false unless strong reasons exist. Choose a reasonable detected_topic and next_action=ASK_DEEPER.
+</file>
+
+<file path="AGENTS.md">
+# AGENTS.md
+
+## 1) Mission / Scope
+- Проект: **Multi-Agent Interview Coach**
+- Требования ТЗ: **2+ роли** (Interviewer + Observer), **hidden reflection**, **context awareness**, **adaptability**, **robustness**, **финальный отчёт**
+
+## 2) Repo Structure
+- `src/interview_coach/` — основной пакет
+  - `__init__.py`
+  - `agents.py` — сборка агентов и подготовка сообщений
+  - `graph.py` — LangGraph граф
+  - `models.py` — Pydantic модели
+  - `logger.py` — интервью-логгер
+  - `cli.py` — CLI runner
+  - `scenarios.py` — скриптовые прогоны сценариев
+  - `prompts.py` — загрузка промптов из `prompts/`
+  - `nodes/` — узлы графа
+    - `difficulty.py`
+    - `interviewer.py`
+    - `observer.py`
+    - `report.py`
+    - `router.py`
+- `prompts/`
+  - `interviewer_system.md`
+  - `observer_system.md`
+  - `report_writer_system.md`
+- `examples/scenarios/` — json/yaml сценарии для прогонов
+- `runs/` — сгенерированные логи
+- `tests/` — smoke tests
+- `pyproject.toml` — ruff, mypy, pytest конфиг
+- `README.md`
+
+## 3) Code Style & Quality
+- PEP8, строгая типизация (mypy-friendly), **Pydantic v2**
+- **ruff format** и **ruff check** — основной инструмент качества
+- Запрет на “god file”: модули небольшие, функции короткие
+- Никакой магии: **явные модели, явные enums, явные контракты**
+
+## 4) LangChain / LangGraph Principles
+- Роли реализуем как **LangChain agents / runnables**
+- **Structured output** получаем через `create_agent(response_format=...)` и читаем из `structured_response` (без ручного парсинга)
+- Оркестрация диалога и hidden reflection — в **LangGraph StateGraph** (узлы `State -> Partial[State]`, граф `compile`)
+
+## 5) Prompting Rules (важно для зачёта)
+- НЕ один большой промпт: **строго отдельные агенты и отдельные prompt-файлы**
+- **Observer возвращает строго JSON по схеме** (никакой “лирики”)
+- **Interviewer не делает факт-чек и не выставляет оценку**
+- **Hidden reflection**: перед каждым видимым ответом Interviewer должен опираться на скрытый отчёт Observer/Manager, и это отражено в `internal_thoughts` лога
+
+## 6) Logging Contract
+- `interview_log.json` обязателен
+- Каждый `turn` содержит:
+  - `turn_id`
+  - `agent_visible_message`
+  - `user_message`
+  - `internal_thoughts` в формате: `"[Observer]: ... [Interviewer]: ..."`
+- Логи читаемые: без гигантских “простыней”, но достаточно информативные
+- `interview_log.json` совместим с ТЗ, `internal_thoughts` читаемый
+
+## 7) CLI / UX
+- Команда стопа: **"стоп"**, **"стоп интервью"**, **"stop"**
+- После стопа генерируется **финальный отчёт** по структуре ТЗ
+
+## 8) Definition of Done
+- `ruff format` и `ruff check` проходят
+- `pytest` проходит
+- Есть минимум 1 пример прогона в `runs/` (sample log)
+- `README.md` объясняет, как запустить
+</file>
+
+<file path="src/interview_coach/nodes/report.py">
+"""Final report node for the interview graph."""
+
+from __future__ import annotations
+
+import logging
+import re
+import time
+from collections.abc import Mapping
+from datetime import datetime
+from typing import Any, TypedDict
+
+from pydantic import BaseModel
+
+from src.interview_coach.agents import build_report_messages, get_report_agent
+from src.interview_coach.models import ExpertRole, FinalFeedback, GradeTarget, SkillMatrix, SkillTopicState
+
+LOGGER = logging.getLogger(__name__)
+
+
+class InterviewState(TypedDict, total=False):
+    """State payload passed through the interview graph."""
+
+    model: str
+    temperature: float
+    max_retries: int
+    report_model: str
+    report_temperature: float
+    report_max_retries: int
+    intake: Any
+    skill_matrix: Any
+    skill_snapshot: Any
+    turns: list[Any]
+    observer_reports: list[Any]
+    summary_notes: str
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+    topics_covered: list[str]
+
+
+class ReportUpdate(TypedDict, total=False):
+    """Partial state update emitted by the report node."""
+
+    final_feedback: FinalFeedback
+    final_feedback_text: str
+
+
+def run_report(state: InterviewState) -> ReportUpdate:
+    """Invoke the report agent and return final feedback."""
+
+    snapshot = _build_skill_snapshot(state.get("skill_matrix"))
+    local_state = dict(state)
+    local_state["skill_snapshot"] = snapshot
+    messages = build_report_messages(local_state)
+    model, temperature, max_retries = _resolve_report_settings(state)
+    agent = get_report_agent(model, temperature, max_retries)
+
+    start = time.monotonic()
+    LOGGER.info("Report: start (model=%s)", model)
+    result = agent.invoke({"messages": messages})
+    LOGGER.info("Report: done in %.2fs", time.monotonic() - start)
+    feedback = _extract_feedback(result)
+
+    update: ReportUpdate = {"final_feedback": feedback}
+    summary = _summarize_feedback(feedback)
+    if summary:
+        update["final_feedback_text"] = summary
+    metrics = _collect_feedback_metrics(feedback, state)
+    LOGGER.info("Final feedback metrics: %s", metrics)
+
+    return update
+
+
+def _resolve_report_settings(state: Mapping[str, Any]) -> tuple[str, float, int]:
+    model = str(state.get("report_model") or state.get("model") or "gpt-5-nano")
+    temperature = float(state.get("report_temperature") or state.get("temperature") or 0.2)
+    max_retries = int(state.get("report_max_retries") or state.get("max_retries") or 2)
+    return model, temperature, max_retries
+
+
+def _extract_feedback(result: Any) -> FinalFeedback:
+    if isinstance(result, FinalFeedback):
+        return result
+    if isinstance(result, Mapping) and "structured_response" in result:
+        return _coerce_feedback(result["structured_response"])
+    if hasattr(result, "structured_response"):
+        return _coerce_feedback(result.structured_response)
+    return _coerce_feedback(result)
+
+
+def _coerce_feedback(value: Any) -> FinalFeedback:
+    if isinstance(value, FinalFeedback):
+        return value
+    if isinstance(value, BaseModel):
+        return FinalFeedback.model_validate(value.model_dump())
+    if isinstance(value, Mapping):
+        return FinalFeedback.model_validate(dict(value))
+    raise TypeError("Report agent returned an unsupported response type.")
+
+
+def _summarize_feedback(feedback: FinalFeedback) -> str:
+    decision = feedback.decision
+    hard = feedback.hard_skills
+    soft = feedback.soft_skills
+    roadmap = feedback.roadmap
+
+    parts: list[str] = []
+    grade_label = _grade_label(decision.grade)
+    parts.append(f"В целом вы уверенно тянете уровень {grade_label}.")
+    if hard.confirmed:
+        parts.append("Видно, что у вас есть реальный практический опыт: " + _join_items(hard.confirmed) + ".")
+    if soft.clarity or soft.honesty or soft.engagement:
+        soft_bits = [bit for bit in [soft.clarity, soft.honesty, soft.engagement] if bit]
+        if soft_bits:
+            parts.append("По софт-скиллам: " + " ".join(soft_bits).rstrip(".") + ".")
+    if soft.examples:
+        parts.append("Примеры: " + _join_items(soft.examples) + ".")
+    if hard.gaps_with_correct_answers:
+        gaps_text = "; ".join(
+            f"{gap} — {answer}".rstrip(".")
+            for gap, answer in hard.gaps_with_correct_answers.items()
+        )
+        parts.append("Что можно усилить: " + gaps_text + ".")
+    if roadmap.next_steps:
+        parts.append("Рекомендации на следующий шаг: " + _join_items(roadmap.next_steps) + ".")
+    if decision.recommendation:
+        parts.append("Общая рекомендация: " + decision.recommendation.rstrip(".") + ".")
+    confidence_pct = int(round(decision.confidence_score * 100))
+    parts.append(f"Уверенность в оценке — примерно {confidence_pct}%.")
+
+    return "\n\n".join(parts).strip()
+
+
+_MESSAGE_REF_RE = re.compile(r"сообщен(?:ие|ия|ии)\s*№\s*(\d+)", re.IGNORECASE)
+
+
+def _collect_feedback_metrics(feedback: FinalFeedback, state: Mapping[str, Any]) -> dict[str, Any]:
+    decision = feedback.decision
+    hard = feedback.hard_skills
+    soft = feedback.soft_skills
+    roadmap = feedback.roadmap
+
+    confirmed = [_collect_item_metrics(item) for item in hard.confirmed]
+    gaps = [
+        {
+            "gap": gap,
+            "answer": answer,
+            "message_ids": _extract_message_ids(f"{gap} {answer}"),
+        }
+        for gap, answer in hard.gaps_with_correct_answers.items()
+    ]
+    examples = [_collect_item_metrics(item) for item in soft.examples]
+    next_steps = [_collect_item_metrics(item) for item in roadmap.next_steps]
+
+    message_ids: set[int] = set()
+    for collection in (confirmed, gaps, examples, next_steps):
+        for item in collection:
+            message_ids.update(item.get("message_ids", []))
+
+    turns = state.get("turns") or []
+    observer_reports = state.get("observer_reports") or []
+
+    return {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "report_model": state.get("report_model") or state.get("model"),
+        "grade": decision.grade.value if isinstance(decision.grade, GradeTarget) else str(decision.grade),
+        "confidence_score": decision.confidence_score,
+        "recommendation": decision.recommendation,
+        "counts": {
+            "confirmed": len(hard.confirmed),
+            "gaps": len(hard.gaps_with_correct_answers),
+            "examples": len(soft.examples),
+            "next_steps": len(roadmap.next_steps),
+            "turns": len(turns),
+            "observer_reports": len(observer_reports),
+        },
+        "message_sources": sorted(message_ids),
+        "evidence": {
+            "confirmed": confirmed,
+            "gaps": gaps,
+            "examples": examples,
+            "next_steps": next_steps,
+        },
+        "topics_covered": state.get("topics_covered") or [],
+    }
+
+
+def _build_skill_snapshot(skill_matrix: Any) -> dict[str, Any]:
+    matrix = _coerce_skill_matrix(skill_matrix)
+    topics = matrix.topics
+    if not topics:
+        return {"confirmed": [], "gaps": [], "evidence": {}}
+
+    confirmed_threshold = 3.5
+    gap_threshold = 1.5
+
+    scored = []
+    for key, topic in topics.items():
+        scored.append((key, topic.score))
+
+    confirmed = sorted([item for item in scored if item[1] >= confirmed_threshold], key=lambda x: -x[1])[:5]
+    gaps = sorted([item for item in scored if item[1] <= gap_threshold], key=lambda x: x[1])[:5]
+
+    evidence: dict[str, dict[str, Any]] = {}
+    for key, topic in topics.items():
+        last = topic.evidence[-1] if topic.evidence else None
+        if last:
+            evidence[key] = {
+                "turn_id": last.turn_id,
+                "note": last.notes,
+                "is_correct": last.is_correct,
+            }
+
+    return {
+        "confirmed": [{"skill": key, "score": score} for key, score in confirmed],
+        "gaps": [{"skill": key, "score": score} for key, score in gaps],
+        "evidence": evidence,
+    }
+
+
+def _coerce_skill_matrix(value: Any) -> SkillMatrix:
+    if isinstance(value, SkillMatrix):
+        return value
+    matrix = SkillMatrix()
+    if isinstance(value, dict):
+        for key, raw in value.items():
+            try:
+                score = float(raw)
+            except (TypeError, ValueError):
+                score = 0.0
+            score = max(0.0, min(5.0, score))
+            matrix.topics[str(key)] = SkillTopicState(
+                score=score,
+                level_estimate=int(round(score)),
+                evidence=[],
+            )
+    return matrix
+
+
+def _extract_message_ids(text: str) -> list[int]:
+    return sorted({int(match.group(1)) for match in _MESSAGE_REF_RE.finditer(text)})
+
+
+def _collect_item_metrics(text: str) -> dict[str, Any]:
+    return {
+        "text": text,
+        "message_ids": _extract_message_ids(text),
+    }
+
+
+def _grade_label(grade: GradeTarget | Any) -> str:
+    if isinstance(grade, GradeTarget):
+        value = grade.value
+    else:
+        value = str(grade)
+    mapping = {
+        "intern": "intern-разработчика",
+        "junior": "junior-разработчика",
+        "middle": "middle-разработчика",
+        "senior": "senior-разработчика",
+        "staff": "staff-разработчика",
+        "principal": "principal-разработчика",
+    }
+    return mapping.get(value, value)
+
+
+def _join_items(items: list[str]) -> str:
+    return "; ".join(item.strip().rstrip(".") for item in items if item and item.strip())
+</file>
+
+<file path="src/interview_coach/graph.py">
+"""LangGraph definition for the interview coach."""
+
+from __future__ import annotations
+
+from typing import Any, TypedDict
+
+from langgraph.graph import END, StateGraph
+
+from src.interview_coach.models import ExpertRole, FinalFeedback, NextAction, ObserverReport, SkillMatrix, TurnLog
+from src.interview_coach.nodes.difficulty import run_difficulty
+from src.interview_coach.nodes.experts import create_expert_node
+from src.interview_coach.nodes.interviewer import run_interviewer
+from src.interview_coach.nodes.observer import run_observer
+from src.interview_coach.nodes.planner import run_planner
+from src.interview_coach.nodes.report import run_report
+
+
+class InterviewState(TypedDict, total=False):
+    """Shared state schema for the interview graph."""
+
+    model: str
+    temperature: float
+    max_retries: int
+    observer_model: str
+    observer_temperature: float
+    observer_max_retries: int
+    interviewer_model: str
+    interviewer_temperature: float
+    interviewer_max_retries: int
+    planner_model: str
+    planner_temperature: float
+    planner_max_retries: int
+    expert_model: str
+    expert_temperature: float
+    expert_max_retries: int
+    report_model: str
+    report_temperature: float
+    report_max_retries: int
+    stop_requested: bool
+    intake: Any
+    topic: str
+    difficulty: str
+    difficulty_reason: str
+    messages: list[Any]
+    chat_history: list[Any]
+    last_user_message: str
+    last_interviewer_message: str
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
+    last_observer_report: ObserverReport | None
+    skill_matrix: SkillMatrix | dict[str, float] | None
+    skill_snapshot: Any
+    topics_covered: list[str]
+    asked_questions: list[str]
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+    turns: list[TurnLog]
+    observer_reports: list[Any]
+    summary_notes: str
+    final_feedback: FinalFeedback
+    final_feedback_text: str
+    turn_log: TurnLog
+
+
+def _route_after_observer(state: InterviewState) -> str:
+    if _should_finalize(state):
+        return "final_report"
+    if state.get("pending_expert_nodes"):
+        return "experts_router"
+    return "difficulty"
+
+
+def _route_experts(state: InterviewState) -> str:
+    pending = state.get("pending_expert_nodes") or []
+    if not pending:
+        return "difficulty"
+    role = pending[0]
+    return _EXPERT_NODES.get(role, "difficulty")
+
+
+def _should_finalize(state: InterviewState) -> bool:
+    if state.get("stop_requested"):
+        return True
+    current_index = int(state.get("current_topic_index") or 0)
+    if current_index < 10:
+        return False
+    report = state.get("last_observer_report")
+    if report is None:
+        return False
+    return report.recommended_next_action in {NextAction.WRAP_UP, NextAction.CHANGE_TOPIC}
+
+
+def _run_intake(_: InterviewState) -> dict[str, Any]:
+    return {}
+
+
+def _wait_for_user_input(_: InterviewState) -> dict[str, Any]:
+    return {}
+
+
+_EXPERT_NODES: dict[ExpertRole, str] = {
+    ExpertRole.TECH_LEAD: "expert_tech_lead",
+    ExpertRole.TEAM_LEAD: "expert_team_lead",
+    ExpertRole.QA: "expert_qa",
+    ExpertRole.DESIGNER: "expert_designer",
+    ExpertRole.ANALYST: "expert_analyst",
+}
+
+
+def build_graph() -> Any:
+    """Build and compile the interview StateGraph."""
+
+    graph_builder = StateGraph(state_schema=InterviewState)
+
+    graph_builder.add_node("intake", _run_intake)
+    graph_builder.add_node("planner", run_planner)
+    graph_builder.add_node("observer", run_observer)
+    graph_builder.add_node("difficulty", run_difficulty)
+    graph_builder.add_node("experts_router", _run_intake)
+    graph_builder.add_node("expert_tech_lead", create_expert_node(ExpertRole.TECH_LEAD))
+    graph_builder.add_node("expert_team_lead", create_expert_node(ExpertRole.TEAM_LEAD))
+    graph_builder.add_node("expert_qa", create_expert_node(ExpertRole.QA))
+    graph_builder.add_node("expert_designer", create_expert_node(ExpertRole.DESIGNER))
+    graph_builder.add_node("expert_analyst", create_expert_node(ExpertRole.ANALYST))
+    graph_builder.add_node("interviewer", run_interviewer)
+    graph_builder.add_node("wait_for_user_input", _wait_for_user_input)
+    graph_builder.add_node("final_report", run_report)
+
+    graph_builder.set_entry_point("intake")
+
+    graph_builder.add_edge("intake", "planner")
+    graph_builder.add_edge("planner", "observer")
+
+    graph_builder.add_conditional_edges(
+        "observer",
+        _route_after_observer,
+        {
+            "final_report": "final_report",
+            "experts_router": "experts_router",
+            "difficulty": "difficulty",
+        },
+    )
+
+    graph_builder.add_conditional_edges(
+        "experts_router",
+        _route_experts,
+        {
+            "difficulty": "difficulty",
+            "expert_tech_lead": "expert_tech_lead",
+            "expert_team_lead": "expert_team_lead",
+            "expert_qa": "expert_qa",
+            "expert_designer": "expert_designer",
+            "expert_analyst": "expert_analyst",
+        },
+    )
+
+    for node in _EXPERT_NODES.values():
+        graph_builder.add_edge(node, "experts_router")
+
+    graph_builder.add_edge("difficulty", "interviewer")
+    graph_builder.add_edge("interviewer", "wait_for_user_input")
+    graph_builder.add_edge("wait_for_user_input", END)
+    graph_builder.add_edge("final_report", END)
+
+    return graph_builder.compile()
+</file>
+
+<file path="prompts/interviewer_system.md">
+You are the Interviewer. You synthesize expert notes into a single response for the user.
+
+You receive JSON context in the variable "context". Use it directly to decide what to say next.
+If context includes rewrite_instructions or avoid_questions/avoid_topics, you must follow them.
+
+Hard rules for every visible message:
+- One final message only.
+- No bullet points, no lists, no numbering.
+- Keep it short: max 450 characters.
+- 1 to 3 sentences total.
+- If you ask a question, ask only one.
+- If you ask a question, end it with a '?'.
+- Never reveal hidden reasoning or strategy.
+- Always write in Russian.
+
+User-question rule:
+- If the candidate asked a question, answer it briefly in 1-2 sentences using expert_evaluations as guidance.
+- After the answer, ask at most one interview question (based on expert_questions or the next topic).
+
+Content rules:
+- Do not fact-check or grade the candidate.
+- Follow observer_decision (ask_deeper vs advance_topic) and observer_report if present.
+- Use expert_evaluations for synthesis; if experts included questions in their notes, merge them into one logical question.
+- Keep context awareness; build on prior turns without repetition.
+- Stay polite and neutral.
+- Do not ask for code, diagrams, or any artifacts; keep questions verbal and conceptual.
+- If observer_report.flags.off_topic=true: briefly acknowledge, then steer back to the current topic/question.
+- If observer_report.flags.hallucination=true: ask for evidence/clarification, allow admitting not knowing, then return to the topic.
+- If observer_report.flags.role_reversal=true: state that you ask the questions, then return to the interview flow.
+- One-turn rule: handle the robust case first (off_topic/hallucination/role_reversal), then (if appropriate) return to the current topic without changing topic_index.
+
+How to read the JSON context fields:
+- strategy: choose the response style (e.g., deepen, change_topic, return_to_topic, wrap_up, answer_candidate_question).
+- If strategy=return_roles, remind the candidate that you ask the questions and then continue the interview.
+- If strategy=challenge_hallucination, politely ask for evidence/clarification and do not accept the claim as true.
+- If strategy=return_to_topic, gently steer back to the current topic before asking a question.
+- observer_decision: ask_deeper/advance_topic signals that override topic choice.
+- expert_evaluations: internal expert notes; use them to shape the response and extract any expert questions.
+- planned_topics/current_topic_index/current_topic/next_topic: use to stay on plan.
+- topics_covered and asked_questions: avoid repeating topics or previously asked questions.
+- difficulty: scale depth and complexity to this level.
+  - EASY: simpler wording, add hints or leading cues, one small sub-question max.
+  - MEDIUM: standard depth, one focused question.
+  - HARD: go deeper, ask about edge cases/trade-offs, no hints.
+
+Company context (use only if the candidate asks about the company):
+- Company name: ООО Ринева.
+- Domain: mid-size продуктовая компания в сфере B2B SaaS для автоматизации документооборота.
+- Team: ~120 сотрудников, инженерная команда ~45 (backend, frontend, data, QA, DevOps).
+- Tech stack (high level): Python/TypeScript(и другие языки), PostgreSQL, Kafka, Kubernetes, Terraform, observability via OpenTelemetry.
+- Processes: 2-недельные спринты, канбан для саппорт-задач, релизные окна раз в неделю.
+- Hiring process: первичный скрининг, техническое интервью, кейс-беседа с тимлидом, финальная встреча с HR.
+- Culture: прозрачность, асинхронные апдейты, фокус на качестве и устойчивости.
+
+Few-shot examples (context -> output):
+Example 1:
+context (condensed): strategy=deepen; observer_decision.ask_deeper=true; expert_questions=[...]; difficulty=3
+output: You explained the basics well. How would you decide whether to add a composite index versus two single-column indexes in PostgreSQL?
+
+Example 2:
+context (condensed): strategy=answer_candidate_question; last_user_message=What does your on-call look like?; expert_evaluations include ops/process guidance
+output: We run a rotating on-call with clear escalation and compensatory time off. How do you design an API versioning strategy to minimize breaking changes?
+
+Example 3:
+context (condensed): strategy=change_topic; observer_decision.advance_topic=true; next_topic=Schema evolution; last_user_message=You already asked me that.
+output: Спасибо за сигнал, перейдём дальше. Как вы подходите к эволюции схем сообщений в распределённой системе?
+</file>
+
+<file path="src/interview_coach/agents.py">
+"""LangChain agent builders and message helpers."""
+
+from __future__ import annotations
+
+import json
+from collections.abc import Iterable, Mapping
+from typing import Any
+
+from langchain.agents import create_agent
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel
+
+from src.interview_coach.models import FinalFeedback, ObserverOutput, PlannedTopics
+from src.interview_coach.prompts import load_prompt
+from src.interview_coach.settings import get_settings
+
+_ModelKey = tuple[str, float, int]
+
+_MODEL_CACHE: dict[_ModelKey, ChatOpenAI] = {}
+_INTERVIEWER_CACHE: dict[_ModelKey, Any] = {}
+_OBSERVER_CACHE: dict[_ModelKey, Any] = {}
+_REPORT_CACHE: dict[_ModelKey, Any] = {}
+_PLANNER_CACHE: dict[_ModelKey, Any] = {}
+
+_MAX_CONTEXT_STRING_LEN = 800
+
+
+def build_model(model: str, temperature: float, max_retries: int) -> ChatOpenAI:
+    """Create or reuse a ChatOpenAI model instance."""
+    key = (model, temperature, max_retries)
+    if key not in _MODEL_CACHE:
+        settings = get_settings()
+        client_kwargs: dict[str, Any] = {}
+        if settings.openai_api_key:
+            client_kwargs["openai_api_key"] = settings.openai_api_key
+        if settings.openai_base_url:
+            client_kwargs["base_url"] = settings.openai_base_url
+        _MODEL_CACHE[key] = ChatOpenAI(
+            model=model,
+            temperature=temperature,
+            max_retries=max_retries,
+            **client_kwargs,
+        )
+    return _MODEL_CACHE[key]
+
+
+def build_interviewer_input(state: Mapping[str, Any]) -> dict[str, str]:
+    """Build the input payload for the interviewer prompt."""
+    payload = {
+        "intake": _serialize(state.get("intake")),
+        "observer_report": _serialize(state.get("observer_report")),
+        "skill_matrix": _serialize(state.get("skill_matrix")),
+        "recent_turns": _serialize(_tail(state.get("turns"))),
+        "last_user_message": state.get("last_user_message") or "",
+        "last_interviewer_message": state.get("last_interviewer_message") or "",
+    }
+    context = json.dumps(payload, ensure_ascii=False, indent=2)
+    return {"context": context}
+
+
+def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
+    """Build the message list for the observer agent invocation."""
+    messages: list[BaseMessage] = [SystemMessage(content=load_prompt("observer_system.md"))]
+
+    history = state.get("messages") or state.get("chat_history")
+    if history:
+        messages.extend(_coerce_messages(history))
+    else:
+        if state.get("last_interviewer_message"):
+            messages.append(AIMessage(content=str(state["last_interviewer_message"])))
+        if state.get("last_user_message"):
+            messages.append(HumanMessage(content=str(state["last_user_message"])))
+
+    context = {
+        "intake": _compact_intake(state.get("intake")),
+        "topic": state.get("topic"),
+        "difficulty": state.get("difficulty"),
+        "planned_topics": state.get("planned_topics") or [],
+        "current_topic_index": state.get("current_topic_index") or 0,
+        "current_topic": _topic_from_plan(state),
+        "agent_visible_message": state.get("last_interviewer_message") or "",
+        "user_message": state.get("last_user_message") or "",
+        "kickoff": not bool((state.get("last_user_message") or "").strip()),
+        "recent_turns": _compact_turns(state.get("turns")),
+        "asked_questions": _tail(state.get("asked_questions"), limit=10),
+        "skill_keys": _skill_keys(state.get("skill_matrix")),
+    }
+    context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)
+    context_text = json.dumps(context, ensure_ascii=False, indent=2)
+    messages.append(HumanMessage(content=f"Context (JSON):\n{context_text}"))
+
+    return messages
+
+
+def _topic_from_plan(state: Mapping[str, Any]) -> str | None:
+    planned_topics = state.get("planned_topics") or []
+    current_index = int(state.get("current_topic_index") or 0)
+    if current_index < 0 or current_index >= len(planned_topics):
+        return None
+    topic = str(planned_topics[current_index]).strip()
+    return topic or None
+
+
+def _skill_keys(skill_matrix: Any) -> list[str]:
+    if isinstance(skill_matrix, dict):
+        return [str(key) for key in skill_matrix.keys()]
+    if hasattr(skill_matrix, "topics"):
+        topics = getattr(skill_matrix, "topics", None)
+        if isinstance(topics, dict):
+            return [str(key) for key in topics.keys()]
+    return []
+
+
+def build_report_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
+    """Build the message list for the report agent invocation."""
+    payload = {
+        "intake": _serialize(state.get("intake")),
+        "skill_matrix": _serialize(state.get("skill_matrix")),
+        "skill_snapshot": _serialize(state.get("skill_snapshot")),
+        "turns": _serialize(state.get("turns")),
+        "observer_reports": _serialize(state.get("observer_reports")),
+        "summary_notes": state.get("summary_notes"),
+    }
+    content = json.dumps(payload, ensure_ascii=False, indent=2)
+    return [
+        SystemMessage(content=load_prompt("report_writer_system.md")),
+        HumanMessage(content=content),
+    ]
+
+
+def build_planner_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
+    """Build the message list for the planner agent invocation."""
+    context = {"intake_data": _compact_intake(state.get("intake"))}
+    context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)
+    content = json.dumps(context, ensure_ascii=False, indent=2)
+    return [
+        SystemMessage(content=load_prompt("planner_system.md")),
+        HumanMessage(content=content),
+    ]
+
+
+def get_interviewer_runnable(model: str, temperature: float, max_retries: int) -> Any:
+    """Return a cached interviewer runnable pipeline."""
+    key = (model, temperature, max_retries)
+    if key not in _INTERVIEWER_CACHE:
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", load_prompt("interviewer_system.md")),
+                ("human", "{context}"),
+            ]
+        )
+        _INTERVIEWER_CACHE[key] = prompt | build_model(*key) | StrOutputParser()
+    return _INTERVIEWER_CACHE[key]
+
+
+def get_observer_agent(model: str, temperature: float, max_retries: int) -> Any:
+    """Return a cached observer agent."""
+    key = (model, temperature, max_retries)
+    if key not in _OBSERVER_CACHE:
+        _OBSERVER_CACHE[key] = create_agent(
+            build_model(*key),
+            response_format=ObserverOutput,
+        )
+    return _OBSERVER_CACHE[key]
+
+
+def get_report_agent(model: str, temperature: float, max_retries: int) -> Any:
+    """Return a cached report agent."""
+    key = (model, temperature, max_retries)
+    if key not in _REPORT_CACHE:
+        _REPORT_CACHE[key] = create_agent(
+            build_model(*key),
+            response_format=FinalFeedback,
+        )
+    return _REPORT_CACHE[key]
+
+
+def get_planner_agent(model: str, temperature: float, max_retries: int) -> Any:
+    """Return a cached planner agent."""
+    key = (model, temperature, max_retries)
+    if key not in _PLANNER_CACHE:
+        _PLANNER_CACHE[key] = create_agent(
+            build_model(*key),
+            response_format=PlannedTopics,
+        )
+    return _PLANNER_CACHE[key]
+
+
+def _tail(value: Any, limit: int = 5) -> list[Any]:
+    if not value:
+        return []
+    if isinstance(value, list):
+        return value[-limit:]
+    return [value]
+
+
+def _serialize(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, BaseModel):
+        return value.model_dump()
+    if isinstance(value, BaseMessage):
+        return {"role": value.type, "content": value.content}
+    if isinstance(value, dict):
+        return {key: _serialize(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_serialize(item) for item in value]
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
+
+
+def _truncate_text(value: str, limit: int) -> str:
+    if len(value) <= limit:
+        return value
+    trimmed = value[:limit].rstrip()
+    return f"{trimmed}..."
+
+
+def _truncate_strings(value: Any, limit: int) -> Any:
+    if isinstance(value, str):
+        return _truncate_text(value, limit)
+    if isinstance(value, dict):
+        return {key: _truncate_strings(val, limit) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_truncate_strings(item, limit) for item in value]
+    return value
+
+
+def _compact_intake(value: Any) -> Any:
+    data = _serialize(value)
+    if not isinstance(data, dict):
+        if isinstance(data, str):
+            return _truncate_text(data, _MAX_CONTEXT_STRING_LEN)
+        return data
+    allowed = ("participant_name", "position", "grade_target", "experience_summary")
+    compact = {key: data.get(key) for key in allowed if key in data}
+    if "experience_summary" in compact and compact["experience_summary"] is not None:
+        compact["experience_summary"] = _truncate_text(str(compact["experience_summary"]), _MAX_CONTEXT_STRING_LEN)
+    return compact
+
+
+def _compact_turns(value: Any) -> list[dict[str, Any]]:
+    turns = _tail(value)
+    compacted: list[dict[str, Any]] = []
+    for turn in turns:
+        data = _serialize(turn)
+        if isinstance(data, dict):
+            compact: dict[str, Any] = {}
+            for key in ("turn_id", "agent_visible_message", "user_message"):
+                if key in data:
+                    compact[key] = data[key]
+            if compact:
+                compacted.append(compact)
+                continue
+        compacted.append({"text": _truncate_text(str(data), _MAX_CONTEXT_STRING_LEN)})
+    return compacted
+
+
+def _coerce_messages(messages: Iterable[Any]) -> list[BaseMessage]:
+    normalized: list[BaseMessage] = []
+    for message in messages:
+        if isinstance(message, BaseMessage):
+            normalized.append(message)
+            continue
+        if isinstance(message, dict):
+            role = message.get("role")
+            content = message.get("content", "")
+            normalized.append(_message_from_role(role, content))
+            continue
+        normalized.append(HumanMessage(content=str(message)))
+    return normalized
+
+
+def _message_from_role(role: Any, content: Any) -> BaseMessage:
+    role_value = str(role).lower() if role is not None else ""
+    text = "" if content is None else str(content)
+    if role_value in {"system", "sys"}:
+        return SystemMessage(content=text)
+    if role_value in {"assistant", "ai"}:
+        return AIMessage(content=text)
+    return HumanMessage(content=text)
+</file>
+
+<file path="src/interview_coach/nodes/observer.py">
+"""Observer node for the interview graph."""
+
+from __future__ import annotations
+
+import logging
+import time
+from collections.abc import Mapping
+from typing import Any, TypedDict
+
+from pydantic import BaseModel
+
+from src.interview_coach.agents import build_observer_messages, get_observer_agent
+from src.interview_coach.models import (
+    ExpertRole,
+    ObserverOutput,
+    ObserverReport,
+    SkillDeltaEntry,
+    SkillEvidence,
+    SkillMatrix,
+    SkillTopicState,
+    TurnLog,
+)
+
+LOGGER = logging.getLogger(__name__)
+
+
+class InterviewState(TypedDict, total=False):
+    """State payload passed through the interview graph."""
+
+    model: str
+    temperature: float
+    max_retries: int
+    observer_model: str
+    observer_temperature: float
+    observer_max_retries: int
+    messages: list[Any]
+    chat_history: list[Any]
+    last_interviewer_message: str
+    last_user_message: str
+    intake: Any
+    topic: str
+    difficulty: str
+    turns: list[Any]
+    last_observer_report: ObserverReport | None
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
+    skill_matrix: SkillMatrix | dict[str, float] | None
+    topics_covered: list[str] | None
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+
+
+class ObserverUpdate(TypedDict, total=False):
+    """Partial state update emitted by the observer node."""
+
+    last_observer_report: ObserverReport
+    topics_covered: list[str]
+    turns: list[TurnLog]
+    turn_log: TurnLog
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
+    current_topic_index: int
+    pending_expert_nodes: list[ExpertRole]
+    skill_matrix: SkillMatrix | dict[str, float] | None
+
+
+def run_observer(state: InterviewState) -> ObserverUpdate:
+    """Evaluate the latest answer and update routing/analytics state."""
+
+    update: ObserverUpdate = {}
+    turn_log = _build_turn_log_from_pending(state)
+    if turn_log is not None:
+        turns = list(state.get("turns") or [])
+        turns.append(turn_log)
+        update["turns"] = turns
+        update["turn_log"] = turn_log
+        update["pending_interviewer_message"] = None
+        update["pending_internal_thoughts"] = None
+        update["pending_report"] = None
+        update["pending_difficulty"] = None
+
+    last_user_message = (state.get("last_user_message") or "").strip()
+
+    messages = build_observer_messages(state)
+    model, temperature, max_retries = _resolve_observer_settings(state)
+    agent = get_observer_agent(model, temperature, max_retries)
+
+    start = time.monotonic()
+    LOGGER.info("Observer: start (model=%s)", model)
+    result = agent.invoke({"messages": messages})
+    LOGGER.info("Observer: done in %.2fs", time.monotonic() - start)
+    output = _extract_output(result)
+    decision = output.decision
+    report = output.report
+
+    planned_topics = state.get("planned_topics") or []
+    current_index = int(state.get("current_topic_index") or 0)
+    current_topic = _topic_at(planned_topics, current_index)
+
+    next_index = current_index
+    if decision.advance_topic and planned_topics:
+        next_index = min(current_index + 1, len(planned_topics))
+    if next_index != current_index:
+        update["current_topic_index"] = next_index
+
+    if not last_user_message:
+        update["pending_expert_nodes"] = []
+    else:
+        update["pending_expert_nodes"] = decision.expert_roles
+
+    if current_topic and not report.detected_topic.strip():
+        report = report.model_copy(update={"detected_topic": current_topic})
+    update["last_observer_report"] = report
+    detected_topic = report.detected_topic or current_topic
+    update["topics_covered"] = _update_topics_covered(state.get("topics_covered"), detected_topic)
+    update["skill_matrix"] = _apply_skills_delta(
+        state.get("skill_matrix"),
+        output.skills_delta,
+        _current_turn_id(state, update),
+    )
+
+    return update
+
+
+def _resolve_observer_settings(state: Mapping[str, Any]) -> tuple[str, float, int]:
+    model = str(state.get("observer_model") or state.get("model") or "gpt-5-nano")
+    temperature = float(state.get("observer_temperature") or state.get("temperature") or 0.2)
+    max_retries = int(state.get("observer_max_retries") or state.get("max_retries") or 2)
+    return model, temperature, max_retries
+
+
+def _build_turn_log_from_pending(state: InterviewState) -> TurnLog | None:
+    pending_message = state.get("pending_interviewer_message")
+    if not pending_message:
+        return None
+    user_message = state.get("last_user_message") or ""
+    if not user_message.strip():
+        return None
+    pending_report = state.get("pending_report")
+    pending_internal_thoughts = state.get("pending_internal_thoughts") or ""
+    pending_difficulty = state.get("pending_difficulty")
+    turns = list(state.get("turns") or [])
+    turn_id = _next_turn_id(turns)
+    current_topic = _topic_at(state.get("planned_topics") or [], int(state.get("current_topic_index") or 0))
+
+    return TurnLog(
+        turn_id=turn_id,
+        agent_visible_message=pending_message,
+        user_message=user_message,
+        internal_thoughts=pending_internal_thoughts,
+        topic=pending_report.detected_topic if pending_report else current_topic,
+        difficulty_before=pending_difficulty,
+        difficulty_after=pending_difficulty,
+        flags=pending_report.flags if pending_report else None,
+        skills_delta=pending_report.skills_delta if pending_report else None,
+    )
+
+
+def _update_topics_covered(topics: list[str] | None, detected_topic: str | None) -> list[str]:
+    normalized = [topic for topic in (topics or []) if topic]
+    if detected_topic:
+        topic = detected_topic.strip()
+        if topic and topic not in normalized:
+            normalized.append(topic)
+    return normalized
+
+
+def _next_turn_id(turns: list[TurnLog]) -> int:
+    if not turns:
+        return 1
+    last = turns[-1]
+    return last.turn_id + 1
+
+
+def _extract_output(result: Any) -> ObserverOutput:
+    if isinstance(result, ObserverOutput):
+        return result
+    if isinstance(result, Mapping) and "structured_response" in result:
+        return _coerce_output(result["structured_response"])
+    if hasattr(result, "structured_response"):
+        return _coerce_output(result.structured_response)
+    return _coerce_output(result)
+
+
+def _coerce_output(value: Any) -> ObserverOutput:
+    if isinstance(value, ObserverOutput):
+        return value
+    if isinstance(value, BaseModel):
+        return ObserverOutput.model_validate(value.model_dump())
+    if isinstance(value, Mapping):
+        return ObserverOutput.model_validate(dict(value))
+    raise TypeError("Observer agent returned an unsupported response type.")
+
+
+def _topic_at(planned_topics: list[str], index: int) -> str | None:
+    if index < 0 or index >= len(planned_topics):
+        return None
+    topic = planned_topics[index].strip()
+    return topic or None
+
+
+def _current_turn_id(state: InterviewState, update: ObserverUpdate) -> int | None:
+    turn_log = update.get("turn_log")
+    if isinstance(turn_log, TurnLog):
+        return turn_log.turn_id
+    turns = state.get("turns") or []
+    if turns:
+        last = turns[-1]
+        if isinstance(last, TurnLog):
+            return last.turn_id
+    return None
+
+
+def _apply_skills_delta(
+    skill_matrix: SkillMatrix | dict[str, float] | None,
+    deltas: list[SkillDeltaEntry],
+    default_turn_id: int | None,
+) -> SkillMatrix | dict[str, float] | None:
+    if not deltas:
+        return skill_matrix
+
+    matrix = _ensure_skill_matrix(skill_matrix)
+    for entry in deltas:
+        key = entry.skill.strip()
+        if not key:
+            continue
+        topic_state = matrix.topics.get(key)
+        if topic_state is None:
+            topic_state = SkillTopicState()
+            matrix.topics[key] = topic_state
+        updated_score = max(0.0, min(5.0, topic_state.score + float(entry.delta)))
+        topic_state.score = updated_score
+        topic_state.level_estimate = int(round(updated_score))
+        evidence_turn_id = entry.evidence_turn_id or default_turn_id
+        if evidence_turn_id is not None:
+            topic_state.evidence.append(
+                SkillEvidence(
+                    topic=key,
+                    claim=entry.note or "",
+                    is_correct=1.0 if entry.delta >= 0 else 0.0,
+                    notes=entry.note or "",
+                    turn_id=evidence_turn_id,
+                )
+            )
+    return matrix
+
+
+def _ensure_skill_matrix(skill_matrix: SkillMatrix | dict[str, float] | None) -> SkillMatrix:
+    if isinstance(skill_matrix, SkillMatrix):
+        return skill_matrix
+    matrix = SkillMatrix()
+    if isinstance(skill_matrix, dict):
+        for key, raw in skill_matrix.items():
+            try:
+                score = float(raw)
+            except (TypeError, ValueError):
+                score = 0.0
+            score = max(0.0, min(5.0, score))
+            matrix.topics[str(key)] = SkillTopicState(
+                score=score,
+                level_estimate=int(round(score)),
+            )
+    return matrix
+</file>
+
+<file path="src/interview_coach/cli.py">
+"""CLI runner for the Multi-Agent Interview Coach."""
+
+from __future__ import annotations
+
+import logging
+import select
+import sys
+import warnings
+from datetime import datetime
+from typing import Any
+
+warnings.filterwarnings(
+    "ignore",
+    message="Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.",
+    category=UserWarning,
+)
+
+from src.interview_coach.graph import build_graph
+from src.interview_coach.logger import InterviewLogger
+from src.interview_coach.models import GradeTarget, InterviewIntake, TurnLog
+from src.interview_coach.skills import build_skill_baseline
+
+STOP_COMMANDS = {"stop", "стоп", "стоп интервью"}
+
+
+def _sanitize_input(value: str) -> str:
+    # Strip control chars to avoid terminal artifacts and hidden separators.
+    cleaned = "".join(ch for ch in value if ch.isprintable())
+    return cleaned.strip()
+
+
+def _prompt(text: str) -> str:
+    print(text, end="", flush=True)
+    raw_bytes = sys.stdin.buffer.readline()
+    if not raw_bytes:
+        logging.info("CLI: input EOF")
+        raise EOFError
+    lines = [raw_bytes]
+    extra_lines = 0
+    # Capture pasted multi-line input without requiring an extra blank line.
+    while True:
+        ready, _, _ = select.select([sys.stdin], [], [], 0.05)
+        if not ready:
+            break
+        more = sys.stdin.buffer.readline()
+        if not more:
+            break
+        lines.append(more)
+        extra_lines += 1
+        if extra_lines >= 200:
+            logging.info("CLI: input truncated (too many lines)")
+            break
+    decoded_lines = [line.decode("utf-8", errors="ignore") for line in lines]
+    cleaned_lines = [_sanitize_input(line).rstrip() for line in decoded_lines]
+    cleaned = "\n".join(cleaned_lines).strip()
+    if cleaned != "".join(decoded_lines):
+        logging.info("CLI: stripped non-printable characters from input")
+    if extra_lines:
+        logging.info("CLI: input received (lines=%d, len=%d)", extra_lines + 1, len(cleaned))
+    else:
+        logging.info("CLI: input received (len=%d)", len(cleaned))
+    return cleaned
+
+
+def _prompt_multiline(text: str) -> str:
+    print(text, end="", flush=True)
+    lines: list[str] = []
+    while True:
+        raw_bytes = sys.stdin.buffer.readline()
+        if not raw_bytes:
+            logging.info("CLI: multiline input EOF")
+            break
+        line = raw_bytes.decode("utf-8", errors="ignore")
+        if not line.strip():
+            break
+        lines.append(_sanitize_input(line).rstrip())
+    combined = "\n".join(lines).strip()
+    logging.info("CLI: multiline input received (len=%d)", len(combined))
+    return combined
+
+
+def _collect_intake() -> InterviewIntake:
+    name = _prompt("Имя кандидата: ")
+    position = _prompt("Вакансия/роль: ")
+    grade_raw = _prompt("Уровень (intern/junior/middle/senior/staff/principal): ")
+    experience = _prompt_multiline("Кратко об опыте (можно в несколько строк; пустая строка завершает ввод): ")
+    grade = GradeTarget(grade_raw.strip().lower())
+    return InterviewIntake(
+        participant_name=name,
+        position=position,
+        grade_target=grade,
+        experience_summary=experience,
+    )
+
+
+def _should_stop(message: str) -> bool:
+    return message.strip().lower() in STOP_COMMANDS
+
+
+def _extract_turn_log(state: dict[str, Any]) -> TurnLog | None:
+    turn_log = state.get("turn_log")
+    if isinstance(turn_log, TurnLog):
+        return turn_log
+    turns = state.get("turns") or []
+    if turns:
+        last = turns[-1]
+        if isinstance(last, TurnLog):
+            return last
+    return None
+
+
+def _update_observer_reports(state: dict[str, Any]) -> None:
+    report = state.get("last_observer_report")
+    if report is None:
+        return
+    reports = state.get("observer_reports")
+    if reports is None:
+        state["observer_reports"] = [report]
+        return
+    if report not in reports:
+        reports.append(report)
+
+
+def _invoke_graph(
+    state: dict[str, Any],
+    graph: Any,
+    logger: InterviewLogger,
+    run_path: str,
+    last_logged_turn_id: int,
+) -> tuple[dict[str, Any], int]:
+    state = graph.invoke(state)
+    _update_observer_reports(state)
+    turn_log = _extract_turn_log(state)
+    if turn_log and turn_log.turn_id > last_logged_turn_id:
+        logger.append_turn(turn_log)
+        last_logged_turn_id = turn_log.turn_id
+        logger.save(run_path)
+    return state, last_logged_turn_id
+
+
+def _fallback_feedback(reason: str) -> str:
+    return f"Интервью завершено без финального отчёта. Причина: {reason}."
+
+
+def _resolve_final_feedback(state: dict[str, Any], reason: str) -> str:
+    final_text = state.get("final_feedback_text")
+    if isinstance(final_text, str) and final_text.strip():
+        return final_text.strip()
+    final_feedback = state.get("final_feedback")
+    if isinstance(final_feedback, str) and final_feedback.strip():
+        return final_feedback.strip()
+    if final_feedback is not None:
+        return str(final_feedback)
+    return _fallback_feedback(reason)
+
+
+def _finalize_and_save(
+    state: dict[str, Any],
+    logger: InterviewLogger,
+    run_path: str,
+    reason: str,
+) -> None:
+    final_text = _resolve_final_feedback(state, reason)
+    logger.set_final_feedback(final_text)
+    logger.save(run_path)
+    print("\nФинальный отчёт:\n" + final_text)
+
+
+def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%H:%M:%S",
+    )
+    if max_turns < 1:
+        raise ValueError("max_turns must be >= 1")
+    intake = _collect_intake()
+    logger = InterviewLogger()
+    logger.start_session(intake)
+
+    state: dict[str, Any] = {
+        "intake": intake,
+        "difficulty": "MEDIUM",
+        "difficulty_reason": "",
+        "topics_covered": [],
+        "asked_questions": [],
+        "turns": [],
+        "observer_reports": [],
+        "skill_matrix": build_skill_baseline(),
+        "stop_requested": False,
+        "expert_evaluations_current_turn": {},
+        "pending_interviewer_message": None,
+        "pending_internal_thoughts": None,
+        "pending_report": None,
+        "pending_difficulty": None,
+        "pending_difficulty_reason": None,
+    }
+
+    graph = build_graph()
+    resolved_run_path = run_path or (f"runs/interview_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+    last_printed_message = ""
+    last_logged_turn_id = 0
+    stop_reason: str | None = None
+
+    print("\nГенерация ответа...", flush=True)
+    logging.info("CLI: invoking graph (initial)")
+    state, last_logged_turn_id = _invoke_graph(
+        state,
+        graph,
+        logger,
+        resolved_run_path,
+        last_logged_turn_id,
+    )
+    last_message = state.get("last_interviewer_message") or ""
+    if last_message and last_message != last_printed_message:
+        print(f"\nИнтервьюер: {last_message}")
+        last_printed_message = last_message
+    if last_logged_turn_id >= max_turns:
+        print(f"\nДостигнут лимит ходов ({max_turns}). Интервью завершается.")
+        state["stop_requested"] = True
+        stop_reason = f"достигнут лимит ходов (max_turns={max_turns})"
+        try:
+            state, last_logged_turn_id = _invoke_graph(
+                state,
+                graph,
+                logger,
+                resolved_run_path,
+                last_logged_turn_id,
+            )
+        except Exception:
+            logging.exception("CLI: failed to finalize after max_turns")
+        _finalize_and_save(state, logger, resolved_run_path, stop_reason)
+        return
+
+    while True:
+        print("\nОжидание ответа кандидата...", flush=True)
+        try:
+            user_message = _prompt("\nКандидат: ")
+            if _should_stop(user_message):
+                state["stop_requested"] = True
+                stop_reason = "команда stop"
+            state["last_user_message"] = user_message
+            state["expert_evaluations_current_turn"] = {}
+        except EOFError:
+            print("\nEOF: интервью завершается.", flush=True)
+            state["stop_requested"] = True
+            state["last_user_message"] = ""
+            stop_reason = "EOF"
+            try:
+                state, last_logged_turn_id = _invoke_graph(
+                    state,
+                    graph,
+                    logger,
+                    resolved_run_path,
+                    last_logged_turn_id,
+                )
+            except Exception:
+                logging.exception("CLI: failed to finalize after EOF")
+            _finalize_and_save(state, logger, resolved_run_path, stop_reason)
+            break
+        except KeyboardInterrupt:
+            print("\nInterrupted: интервью завершается.", flush=True)
+            state["stop_requested"] = True
+            state["last_user_message"] = ""
+            stop_reason = "KeyboardInterrupt"
+            try:
+                state, last_logged_turn_id = _invoke_graph(
+                    state,
+                    graph,
+                    logger,
+                    resolved_run_path,
+                    last_logged_turn_id,
+                )
+            except Exception:
+                logging.exception("CLI: failed to finalize after KeyboardInterrupt")
+            _finalize_and_save(state, logger, resolved_run_path, stop_reason)
+            break
+
+        print("\nГенерация ответа...", flush=True)
+        logging.info("CLI: invoking graph (turn)")
+        state, last_logged_turn_id = _invoke_graph(
+            state,
+            graph,
+            logger,
+            resolved_run_path,
+            last_logged_turn_id,
+        )
+
+        last_message = state.get("last_interviewer_message") or ""
+        if last_message and last_message != last_printed_message:
+            print(f"\nИнтервьюер: {last_message}")
+            last_printed_message = last_message
+
+        final_feedback = state.get("final_feedback")
+        if final_feedback is not None:
+            _finalize_and_save(
+                state,
+                logger,
+                resolved_run_path,
+                stop_reason or "запрошен финальный отчёт",
+            )
+            break
+        if last_logged_turn_id >= max_turns:
+            print(f"\nДостигнут лимит ходов ({max_turns}). Интервью завершается.")
+            state["stop_requested"] = True
+            stop_reason = f"достигнут лимит ходов (max_turns={max_turns})"
+            try:
+                state, last_logged_turn_id = _invoke_graph(
+                    state,
+                    graph,
+                    logger,
+                    resolved_run_path,
+                    last_logged_turn_id,
+                )
+            except Exception:
+                logging.exception("CLI: failed to finalize after max_turns")
+            _finalize_and_save(state, logger, resolved_run_path, stop_reason)
+            break
+
+        logger.save(resolved_run_path)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-turns", type=int, default=12, help="Max interview turns")
+    args = parser.parse_args()
+
+    run_cli(max_turns=args.max_turns)
+</file>
+
+<file path="src/interview_coach/models.py">
+"""Pydantic models for the Multi-Agent Interview Coach domain."""
+
+from __future__ import annotations
+
+import math
+from collections.abc import Mapping
+from enum import Enum
+
+from pydantic import BaseModel, Field, field_validator
+
+
+def _coerce_float(value: object, default: float) -> float:
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return default
+
+
+def _clamp(value: object, low: float, high: float) -> float:
+    numeric = _coerce_float(value, low)
+    if numeric < low:
+        return low
+    if numeric > high:
+        return high
+    return numeric
+
+
+class GradeTarget(str, Enum):
+    INTERN = "intern"
+    JUNIOR = "junior"
+    MIDDLE = "middle"
+    SENIOR = "senior"
+    STAFF = "staff"
+    PRINCIPAL = "principal"
+
+
+class NextAction(str, Enum):
+    ASK_DEEPER = "ASK_DEEPER"
+    ASK_EASIER = "ASK_EASIER"
+    CHANGE_TOPIC = "CHANGE_TOPIC"
+    HANDLE_OFFTOPIC = "HANDLE_OFFTOPIC"
+    HANDLE_HALLUCINATION = "HANDLE_HALLUCINATION"
+    HANDLE_ROLE_REVERSAL = "HANDLE_ROLE_REVERSAL"
+    WRAP_UP = "WRAP_UP"
+
+
+class ExpertRole(str, Enum):
+    TECH_LEAD = "tech_lead"
+    TEAM_LEAD = "team_lead"
+    QA = "qa"
+    DESIGNER = "designer"
+    ANALYST = "analyst"
+
+
+class InterviewIntake(BaseModel):
+    """Initial interview intake provided by the participant or orchestrator."""
+
+    participant_name: str
+    position: str
+    grade_target: GradeTarget
+    experience_summary: str
+
+
+class PlannedTopics(BaseModel):
+    """Planner output with ordered interview topics."""
+
+    topics: list[str] = Field(default_factory=list)
+
+    @field_validator("topics")
+    @classmethod
+    def validate_topics(cls, value: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        for item in value:
+            text = str(item).strip()
+            if not text:
+                raise ValueError("topics must be non-empty strings")
+            cleaned.append(text)
+        if len(cleaned) != 10:
+            raise ValueError("topics must contain exactly 10 items")
+        return cleaned
+
+
+class ExpertEvaluation(BaseModel):
+    """Expert note for interviewer with optional clarification question."""
+
+    comment: str
+    question: str | None = None
+
+    @field_validator("comment")
+    @classmethod
+    def validate_comment(cls, value: str) -> str:
+        text = value.strip()
+        if not text:
+            raise ValueError("comment must be non-empty")
+        return text
+
+
+class ObserverFlags(BaseModel):
+    off_topic: bool = False
+    hallucination: bool = False
+    contradiction: bool = False
+    role_reversal: bool = False
+    ask_deeper: bool = False
+
+
+class TurnLog(BaseModel):
+    """One logged interaction turn with visible output and internal reasoning."""
+
+    turn_id: int
+    agent_visible_message: str
+    user_message: str
+    internal_thoughts: str
+    topic: str | None = None
+    difficulty_before: str | None = None
+    difficulty_after: str | None = None
+    flags: ObserverFlags | None = None
+    skills_delta: dict[str, float] | None = None
+
+    @field_validator("difficulty_before", "difficulty_after")
+    @classmethod
+    def validate_difficulty(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        cleaned = str(value).strip().upper()
+        if cleaned not in {"EASY", "MEDIUM", "HARD"}:
+            raise ValueError("difficulty must be one of EASY, MEDIUM, HARD")
+        return cleaned
+
+
+class SkillEvidence(BaseModel):
+    """Evidence unit for a specific skill topic assessment."""
+
+    topic: str
+    claim: str
+    is_correct: float = Field(..., ge=0.0, le=1.0)
+    notes: str
+    turn_id: int
+
+
+class SkillTopicState(BaseModel):
+    """Aggregated state for a given skill topic with evidence and gaps."""
+
+    level_estimate: int = 0
+    score: float = Field(0.0, ge=0.0, le=5.0)
+    confirmed: list[str] = Field(default_factory=list)
+    gaps: list[str] = Field(default_factory=list)
+    evidence: list[SkillEvidence] = Field(default_factory=list)
+
+    @field_validator("level_estimate")
+    @classmethod
+    def validate_level(cls, value: int) -> int:
+        if not 0 <= value <= 5:
+            raise ValueError("level_estimate must be within 0..5")
+        return value
+
+
+class SkillMatrix(BaseModel):
+    """Wrapper for per-topic skill states keyed by topic name."""
+
+    topics: dict[str, SkillTopicState] = Field(default_factory=dict)
+
+
+class ObserverReport(BaseModel):
+    """Observer assessment produced for each turn and used for hidden reflection."""
+
+    detected_topic: str
+    answer_quality: float = Field(..., ge=0.0, le=5.0)
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    flags: ObserverFlags
+    recommended_next_action: NextAction
+    recommended_question_style: str
+    fact_check_notes: str | None = None
+    skills_delta: dict[str, float] | None = None
+
+    @field_validator("answer_quality", mode="before")
+    @classmethod
+    def clamp_answer_quality(cls, value: object) -> float:
+        return _clamp(value, 0.0, 5.0)
+
+    @field_validator("confidence", mode="before")
+    @classmethod
+    def clamp_confidence(cls, value: object) -> float:
+        return _clamp(value, 0.0, 1.0)
+
+    @field_validator("skills_delta", mode="before")
+    @classmethod
+    def coerce_skills_delta(cls, value: object) -> dict[str, float] | None:
+        if value is None:
+            return None
+        if not isinstance(value, Mapping):
+            return None
+        cleaned: dict[str, float] = {}
+        for key, raw in value.items():
+            if not isinstance(key, str):
+                continue
+            try:
+                numeric = float(raw)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                continue
+            if not math.isfinite(numeric):
+                continue
+            cleaned[key] = numeric
+        return cleaned or None
+
+
+class ObserverRoutingDecision(BaseModel):
+    """Observer routing output for topic control and expert selection."""
+
+    ask_deeper: bool
+    advance_topic: bool
+    expert_roles: list[ExpertRole]
+    reasoning_notes: str | None = None
+
+    @field_validator("expert_roles")
+    @classmethod
+    def validate_roles(cls, value: list[ExpertRole]) -> list[ExpertRole]:
+        unique: list[ExpertRole] = []
+        for role in value:
+            if role not in unique:
+                unique.append(role)
+        if not 1 <= len(unique) <= 2:
+            raise ValueError("expert_roles must contain 1 or 2 unique roles")
+        return unique
+
+
+class SkillDeltaEntry(BaseModel):
+    """Single skill delta with evidence reference."""
+
+    skill: str
+    delta: float
+    evidence_turn_id: int | None = None
+    note: str | None = None
+
+
+class ObserverOutput(BaseModel):
+    """Combined observer response with routing decision and report."""
+
+    decision: ObserverRoutingDecision
+    report: ObserverReport
+    skills_delta: list[SkillDeltaEntry] = Field(default_factory=list)
+
+
+class Decision(BaseModel):
+    grade: GradeTarget
+    recommendation: str
+    confidence_score: float = Field(..., ge=0.0, le=1.0)
+
+
+class HardSkillsFeedback(BaseModel):
+    confirmed: list[str] = Field(default_factory=list)
+    gaps_with_correct_answers: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("gaps_with_correct_answers", mode="before")
+    @classmethod
+    def coerce_gaps(cls, value: object) -> dict[str, str]:
+        if value is None:
+            return {}
+        if not isinstance(value, Mapping):
+            return {}
+        cleaned: dict[str, str] = {}
+        for key, raw in value.items():
+            if not isinstance(key, str):
+                continue
+            if isinstance(raw, list):
+                text = " ".join(str(item) for item in raw if item is not None).strip()
+            else:
+                text = str(raw).strip()
+            if text:
+                cleaned[key] = text
+        return cleaned
+
+
+class SoftSkillsFeedback(BaseModel):
+    clarity: str = ""
+    honesty: str = ""
+    engagement: str = ""
+    examples: list[str] = Field(default_factory=list)
+
+
+class Roadmap(BaseModel):
+    next_steps: list[str] = Field(default_factory=list)
+    links: list[str] | None = None
+
+
+class FinalFeedback(BaseModel):
+    """Final feedback summary after the interview stops."""
+
+    decision: Decision
+    hard_skills: HardSkillsFeedback
+    soft_skills: SoftSkillsFeedback
+    roadmap: Roadmap
+</file>
+
+<file path="src/interview_coach/nodes/interviewer.py">
+"""Interviewer node for the interview graph."""
+
+from __future__ import annotations
+
+import json
+import logging
+import re
+import time
+from collections.abc import Mapping
+from difflib import SequenceMatcher
+from typing import Any, TypedDict
+
+from pydantic import BaseModel
+
+from src.interview_coach.agents import get_interviewer_runnable
+from src.interview_coach.models import ExpertRole, NextAction, ObserverFlags, ObserverReport, TurnLog
+
+LOGGER = logging.getLogger(__name__)
+
+SIMILARITY_THRESHOLD = 0.85
+MAX_REWRITE_ATTEMPTS = 2
+
+
+class InterviewState(TypedDict, total=False):
+    """State payload passed through the interview graph."""
+
+    model: str
+    temperature: float
+    max_retries: int
+    interviewer_model: str
+    interviewer_temperature: float
+    interviewer_max_retries: int
+    last_user_message: str
+    last_interviewer_message: str
+    last_observer_report: ObserverReport | None
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
+    turns: list[TurnLog]
+    difficulty: str
+    difficulty_reason: str
+    topics_covered: list[str]
+    asked_questions: list[str]
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations_current_turn: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
+    intake: Any
+    skill_matrix: Any
+
+
+class InterviewerUpdate(TypedDict, total=False):
+    """Partial state update emitted by the interviewer node."""
+
+    last_interviewer_message: str
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
+    asked_questions: list[str]
+    topics_covered: list[str]
+
+
+def run_interviewer(state: InterviewState) -> InterviewerUpdate:
+    """Generate the next interviewer message and a turn log update."""
+
+    report = state.get("last_observer_report")
+    strategy = _select_strategy(report, state.get("last_user_message"))
+    payload = _build_payload(state, report, strategy)
+
+    model, temperature, max_retries = _resolve_interviewer_settings(state)
+    runnable = get_interviewer_runnable(model, temperature, max_retries)
+
+    start = time.monotonic()
+    LOGGER.info("Interviewer: start (model=%s)", model)
+    agent_visible_message = _generate_message(runnable, payload, state)
+    LOGGER.info("Interviewer: done in %.2fs", time.monotonic() - start)
+
+    asked_questions = _update_asked_questions(state.get("asked_questions"), agent_visible_message)
+    updated_topics = _update_topics_from_plan(state.get("topics_covered"), state)
+
+    return {
+        "last_interviewer_message": agent_visible_message,
+        "pending_interviewer_message": agent_visible_message,
+        "pending_internal_thoughts": _build_internal_thoughts(
+            report,
+            strategy,
+            state.get("expert_evaluations_current_turn"),
+            state.get("difficulty"),
+            state.get("difficulty_reason"),
+            state.get("turns"),
+            agent_visible_message,
+        ),
+        "pending_report": report,
+        "pending_difficulty": state.get("difficulty"),
+        "pending_difficulty_reason": state.get("difficulty_reason"),
+        "asked_questions": asked_questions,
+        "topics_covered": updated_topics,
+    }
+
+
+def _resolve_interviewer_settings(state: Mapping[str, Any]) -> tuple[str, float, int]:
+    model = str(state.get("interviewer_model") or state.get("model") or "gpt-5-nano")
+    temperature = float(state.get("interviewer_temperature") or state.get("temperature") or 0.2)
+    max_retries = int(state.get("interviewer_max_retries") or state.get("max_retries") or 2)
+    return model, temperature, max_retries
+
+
+def _select_strategy(report: ObserverReport | None, last_user_message: str | None) -> str:
+    if report is None:
+        if last_user_message and _looks_like_question(last_user_message):
+            return "answer_candidate_question"
+        return "ask_standard"
+
+    action = report.recommended_next_action
+    if action == NextAction.HANDLE_ROLE_REVERSAL:
+        return "return_roles"
+    if action == NextAction.HANDLE_HALLUCINATION:
+        return "challenge_hallucination"
+    if action == NextAction.HANDLE_OFFTOPIC:
+        return "return_to_topic"
+    flags = report.flags or ObserverFlags()
+    if flags.role_reversal:
+        return "return_roles"
+    if flags.hallucination:
+        return "challenge_hallucination"
+    if flags.off_topic:
+        return "return_to_topic"
+
+    if action == NextAction.ASK_DEEPER:
+        return "deepen"
+    if action == NextAction.CHANGE_TOPIC:
+        return "change_topic"
+    if action == NextAction.WRAP_UP:
+        return "wrap_up"
+    return "ask_standard"
+
+
+def _build_payload(
+    state: InterviewState,
+    report: ObserverReport | None,
+    strategy: str,
+) -> dict[str, Any]:
+    planned_topics = state.get("planned_topics") or []
+    current_topic_index = int(state.get("current_topic_index") or 0)
+    current_topic = _topic_at(planned_topics, current_topic_index)
+    next_topic = _topic_at(planned_topics, current_topic_index + 1)
+    expert_evaluations = _serialize(state.get("expert_evaluations_current_turn")) or {}
+    ask_deeper = bool(report.flags.ask_deeper) if report and report.flags else False
+    advance_topic = report.recommended_next_action == NextAction.CHANGE_TOPIC if report else False
+
+    payload: dict[str, Any] = {
+        "intake": _serialize(state.get("intake")),
+        "observer_report": _serialize(report),
+        "observer_decision": {
+            "ask_deeper": ask_deeper,
+            "advance_topic": advance_topic,
+        },
+        "skill_matrix": _serialize(state.get("skill_matrix")),
+        "recent_turns": _serialize(_tail(state.get("turns"), limit=5)),
+        "last_user_message": state.get("last_user_message") or "",
+        "last_interviewer_message": state.get("last_interviewer_message") or "",
+        "strategy": strategy,
+        "difficulty": state.get("difficulty"),
+        "topics_covered": state.get("topics_covered") or [],
+        "asked_questions": _tail(state.get("asked_questions"), limit=10),
+        "planned_topics": planned_topics,
+        "current_topic_index": current_topic_index,
+        "current_topic": current_topic,
+        "next_topic": next_topic,
+        "expert_evaluations": expert_evaluations,
+    }
+    return payload
+
+
+def _generate_message(runnable: Any, payload: dict[str, Any], state: InterviewState) -> str:
+    last_user_message = (state.get("last_user_message") or "").strip()
+    asked_questions = state.get("asked_questions") or []
+
+    base = runnable.invoke({"context": json.dumps(payload, ensure_ascii=False)})
+    if not _is_duplicate(base, asked_questions):
+        return base
+
+    avoid = _tail(asked_questions, limit=12)
+    for _ in range(MAX_REWRITE_ATTEMPTS):
+        rewrite_payload = dict(payload)
+        rewrite_payload["rewrite_instructions"] = (
+            "Rewrite the question to avoid repeating the listed questions/topics. "
+            "Ask a new question on a different topic if needed."
+        )
+        rewrite_payload["avoid_questions"] = avoid
+        rewrite_payload["avoid_topics"] = payload.get("topics_covered") or []
+        candidate = runnable.invoke({"context": json.dumps(rewrite_payload, ensure_ascii=False)})
+        if not _is_duplicate(candidate, asked_questions):
+            return candidate
+
+    return base
+
+
+def _is_duplicate(candidate: str, asked_questions: list[str]) -> bool:
+    question = _extract_question_text(candidate)
+    if not question:
+        return False
+    normalized_candidate = _normalize_text(question)
+    if not normalized_candidate:
+        return False
+    for asked in asked_questions:
+        if _similarity_ratio(normalized_candidate, _normalize_text(asked)) >= SIMILARITY_THRESHOLD:
+            return True
+    return False
+
+
+def _normalize_text(text: str) -> str:
+    lowered = text.lower()
+    cleaned = re.sub(r"[^a-z0-9а-яё\s]", " ", lowered)
+    collapsed = re.sub(r"\s+", " ", cleaned).strip()
+    return collapsed
+
+
+def _similarity_ratio(left: str, right: str) -> float:
+    if not left or not right:
+        return 0.0
+    return SequenceMatcher(None, left, right).ratio()
+
+
+def _update_topics_from_plan(topics: list[str] | None, state: InterviewState) -> list[str]:
+    normalized = [topic for topic in (topics or []) if topic]
+    current_topic = _topic_at(state.get("planned_topics") or [], int(state.get("current_topic_index") or 0))
+    if current_topic and current_topic not in normalized:
+        normalized.append(current_topic)
+    return normalized
+
+
+def _is_repeat_complaint(message: str) -> bool:
+    text = _normalize_text(message)
+    if not text:
+        return False
+    markers = ("повтор", "repeat", "again", "same question")
+    return any(marker in text for marker in markers)
+
+
+def _build_internal_thoughts(
+    report: ObserverReport | None,
+    strategy: str,
+    expert_evaluations: dict[ExpertRole, str] | None,
+    difficulty: str | None,
+    difficulty_reason: str | None,
+    turns: list[TurnLog] | None,
+    question: str,
+) -> str:
+    parts: list[str] = []
+    if report is None:
+        parts.append("[Observer]: no report.")
+    else:
+        flags = report.flags
+        flags_summary = (
+            f"off_topic={flags.off_topic}, hallucination={flags.hallucination}, "
+            f"contradiction={flags.contradiction}, role_reversal={flags.role_reversal}, "
+            f"ask_deeper={flags.ask_deeper}"
+        )
+        reason = f", difficulty_reason={difficulty_reason}" if difficulty_reason else ""
+        observer_summary = (
+            f"topic={report.detected_topic}, difficulty={difficulty}{reason}, "
+            f"next_action={report.recommended_next_action}, {flags_summary}"
+        )
+        parts.append(f"[Observer]: {observer_summary}.")
+
+    parts.extend(_format_expert_thoughts(expert_evaluations))
+    reason = "based on observer signal and current topic"
+    parts.append(f"[Interviewer]: strategy={strategy}, question={question}, reason={reason}.")
+    memory_note = _recent_memory_note(turns)
+    if memory_note:
+        parts.append(memory_note)
+    return " ".join(parts)
+
+
+def _recent_memory_note(turns: list[TurnLog] | None) -> str | None:
+    if not turns or len(turns) < 3:
+        return None
+    reference = turns[-3]
+    user_text = (reference.user_message or "").strip()
+    if not user_text:
+        return None
+    snippet = user_text if len(user_text) <= 140 else user_text[:140].rstrip() + "..."
+    return f"[Interviewer]: ты говорил 3 сообщения назад: {snippet}."
+
+
+def _format_expert_thoughts(expert_evaluations: dict[ExpertRole, str] | None) -> list[str]:
+    if not expert_evaluations:
+        return []
+    entries: list[tuple[str, str]] = []
+    for role, text in expert_evaluations.items():
+        role_name = role.value if isinstance(role, ExpertRole) else str(role)
+        cleaned = str(text).strip()
+        if cleaned:
+            entries.append((role_name, cleaned))
+    entries.sort(key=lambda item: item[0])
+    return [f"[Expert:{role}]: {text}." for role, text in entries]
+
+
+def _update_asked_questions(asked: list[str] | None, message: str) -> list[str]:
+    normalized = [item for item in (asked or []) if item]
+    question = _extract_question_text(message)
+    if question and question not in normalized:
+        normalized.append(question)
+    return normalized
+
+
+def _extract_question_text(message: str) -> str:
+    text = message.strip()
+    if not text:
+        return ""
+    if "?" in text:
+        parts = [part.strip() for part in text.split("?") if part.strip()]
+        if parts:
+            return parts[-1] + "?"
+    marker = "вопрос:"
+    lowered = text.lower()
+    if marker in lowered:
+        start = lowered.rfind(marker)
+        extracted = text[start + len(marker) :].strip()
+        return extracted
+    return ""
+
+
+def _tail(value: Any, limit: int = 5) -> list[Any]:
+    if not value:
+        return []
+    if isinstance(value, list):
+        return value[-limit:]
+    return [value]
+
+
+def _serialize(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, BaseModel):
+        return value.model_dump()
+    if isinstance(value, dict):
+        return {key: _serialize(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_serialize(item) for item in value]
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
+
+
+def _looks_like_question(text: str) -> bool:
+    if "?" in text:
+        return True
+    lowered = text.lower()
+    return any(marker in lowered for marker in ("что", "почему", "как", "когда", "зачем", "можно ли"))
+
+
+def _topic_at(planned_topics: list[str], index: int) -> str | None:
+    if index < 0 or index >= len(planned_topics):
+        return None
+    topic = planned_topics[index].strip()
+    return topic or None
+</file>
+
+</files>
