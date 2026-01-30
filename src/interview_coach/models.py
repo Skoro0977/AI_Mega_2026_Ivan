@@ -80,6 +80,21 @@ class PlannedTopics(BaseModel):
         return cleaned
 
 
+class ExpertEvaluation(BaseModel):
+    """Expert note for interviewer with optional clarification question."""
+
+    comment: str
+    question: str | None = None
+
+    @field_validator("comment")
+    @classmethod
+    def validate_comment(cls, value: str) -> str:
+        text = value.strip()
+        if not text:
+            raise ValueError("comment must be non-empty")
+        return text
+
+
 class ObserverFlags(BaseModel):
     off_topic: bool = False
     hallucination: bool = False
