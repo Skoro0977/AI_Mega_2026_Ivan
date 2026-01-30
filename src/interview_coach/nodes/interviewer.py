@@ -274,7 +274,7 @@ def _build_internal_thoughts(
     memory_note = _recent_memory_note(turns)
     if memory_note:
         parts.append(memory_note)
-    return " ".join(parts)
+    return "".join(f"{part.rstrip()}\n" for part in parts)
 
 
 def _recent_memory_note(turns: list[TurnLog] | None) -> str | None:
