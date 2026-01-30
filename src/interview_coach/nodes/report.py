@@ -10,7 +10,7 @@ from typing import Any, TypedDict
 from pydantic import BaseModel
 
 from src.interview_coach.agents import build_report_messages, get_report_agent
-from src.interview_coach.models import FinalFeedback
+from src.interview_coach.models import ExpertRole, FinalFeedback
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +29,10 @@ class InterviewState(TypedDict, total=False):
     turns: list[Any]
     observer_reports: list[Any]
     summary_notes: str
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
 
 
 class ReportUpdate(TypedDict, total=False):

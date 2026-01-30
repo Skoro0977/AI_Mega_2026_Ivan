@@ -13,7 +13,7 @@ from typing import Any, TypedDict
 from pydantic import BaseModel
 
 from src.interview_coach.agents import get_interviewer_runnable
-from src.interview_coach.models import NextAction, ObserverFlags, ObserverReport, TurnLog
+from src.interview_coach.models import ExpertRole, NextAction, ObserverFlags, ObserverReport, TurnLog
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +61,10 @@ class InterviewState(TypedDict, total=False):
     difficulty: int
     topics_covered: list[str]
     asked_questions: list[str]
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
     intake: Any
     skill_matrix: Any
 

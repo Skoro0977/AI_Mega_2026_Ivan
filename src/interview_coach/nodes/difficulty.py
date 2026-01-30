@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TypedDict
 
-from src.interview_coach.models import ObserverFlags, ObserverReport
+from src.interview_coach.models import ExpertRole, ObserverFlags, ObserverReport
 
 LOGGER = logging.getLogger(__name__)
 
@@ -15,6 +15,10 @@ class InterviewState(TypedDict, total=False):
 
     difficulty: int
     last_observer_report: ObserverReport | None
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
 
 
 class DifficultyUpdate(TypedDict, total=False):

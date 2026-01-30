@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Literal, TypedDict
 
+from src.interview_coach.models import ExpertRole
+
 
 class InterviewState(TypedDict, total=False):
     """State payload passed through the interview graph."""
@@ -11,6 +13,10 @@ class InterviewState(TypedDict, total=False):
     stop_requested: bool
     last_user_message: str
     pending_interviewer_message: str | None
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
 
 
 NodeName = Literal["final_report", "observer", "interviewer"]

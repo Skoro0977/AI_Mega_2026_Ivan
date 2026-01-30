@@ -6,7 +6,7 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, StateGraph
 
-from src.interview_coach.models import FinalFeedback, ObserverReport, SkillMatrix, TurnLog
+from src.interview_coach.models import ExpertRole, FinalFeedback, ObserverReport, SkillMatrix, TurnLog
 from src.interview_coach.nodes.difficulty import run_difficulty
 from src.interview_coach.nodes.interviewer import run_interviewer
 from src.interview_coach.nodes.observer import run_observer
@@ -45,6 +45,10 @@ class InterviewState(TypedDict, total=False):
     skill_matrix: SkillMatrix | dict[str, float] | None
     topics_covered: list[str]
     asked_questions: list[str]
+    planned_topics: list[str]
+    current_topic_index: int
+    expert_evaluations: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
     turns: list[TurnLog]
     observer_reports: list[Any]
     summary_notes: str

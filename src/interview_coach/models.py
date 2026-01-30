@@ -44,6 +44,14 @@ class NextAction(str, Enum):
     WRAP_UP = "WRAP_UP"
 
 
+class ExpertRole(str, Enum):
+    TECH_LEAD = "tech_lead"
+    TEAM_LEAD = "team_lead"
+    QA = "qa"
+    DESIGNER = "designer"
+    ANALYST = "analyst"
+
+
 class InterviewIntake(BaseModel):
     """Initial interview intake provided by the participant or orchestrator."""
 
