@@ -271,9 +271,9 @@ class HardSkillsFeedback(BaseModel):
 
 
 class SoftSkillsFeedback(BaseModel):
-    clarity: str
-    honesty: str
-    engagement: str
+    clarity: str = ""
+    honesty: str = ""
+    engagement: str = ""
     examples: list[str] = Field(default_factory=list)
 
 
