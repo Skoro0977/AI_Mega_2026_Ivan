@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
-from interview_coach.models import InterviewIntake, TurnLog
+from src.interview_coach.models import InterviewIntake, TurnLog
 
 
 class InterviewLogger:
