@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+import logging
+import time
 from typing import Any, TypedDict
 
 from pydantic import BaseModel
@@ -10,6 +12,7 @@ from pydantic import BaseModel
 from src.interview_coach.agents import build_report_messages, get_report_agent
 from src.interview_coach.models import FinalFeedback
 
+LOGGER = logging.getLogger(__name__)
 
 class InterviewState(TypedDict, total=False):
     """State payload passed through the interview graph."""
@@ -41,7 +44,10 @@ def run_report(state: InterviewState) -> ReportUpdate:
     model, temperature, max_retries = _resolve_report_settings(state)
     agent = get_report_agent(model, temperature, max_retries)
 
+    start = time.monotonic()
+    LOGGER.info("Report: start (model=%s)", model)
     result = agent.invoke({"messages": messages})
+    LOGGER.info("Report: done in %.2fs", time.monotonic() - start)
     feedback = _extract_feedback(result)
 
     update: ReportUpdate = {"final_feedback": feedback}
@@ -53,7 +59,7 @@ def run_report(state: InterviewState) -> ReportUpdate:
 
 
 def _resolve_report_settings(state: Mapping[str, Any]) -> tuple[str, float, int]:
-    model = str(state.get("report_model") or state.get("model") or "gpt-4o-mini")
+    model = str(state.get("report_model") or state.get("model") or "gpt-5-nano")
     temperature = float(state.get("report_temperature") or state.get("temperature") or 0.2)
     max_retries = int(state.get("report_max_retries") or state.get("max_retries") or 2)
     return model, temperature, max_retries

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import logging
 import warnings
 from typing import Any
 
@@ -19,8 +20,19 @@ from src.interview_coach.models import GradeTarget, InterviewIntake, TurnLog
 STOP_COMMANDS = {"stop", "стоп", "стоп интервью"}
 
 
+def _sanitize_input(value: str) -> str:
+    # Strip control chars to avoid terminal artifacts and hidden separators.
+    cleaned = "".join(ch for ch in value if ch.isprintable())
+    return cleaned.strip()
+
+
 def _prompt(text: str) -> str:
-    return input(text).strip()
+    raw = input(text)
+    cleaned = _sanitize_input(raw)
+    if cleaned != raw:
+        logging.info("CLI: stripped non-printable characters from input")
+    logging.info("CLI: input received (len=%d)", len(cleaned))
+    return cleaned
 
 
 def _prompt_multiline(text: str) -> str:
@@ -30,8 +42,10 @@ def _prompt_multiline(text: str) -> str:
         line = input()
         if not line.strip():
             break
-        lines.append(line.rstrip())
-    return "\n".join(lines).strip()
+        lines.append(_sanitize_input(line).rstrip())
+    combined = "\n".join(lines).strip()
+    logging.info("CLI: multiline input received (len=%d)", len(combined))
+    return combined
 
 
 def _collect_intake() -> InterviewIntake:
@@ -79,6 +93,11 @@ def _update_observer_reports(state: dict[str, Any]) -> None:
 
 
 def run_cli() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%H:%M:%S",
+    )
     intake = _collect_intake()
     logger = InterviewLogger()
     logger.start_session(intake)
@@ -102,6 +121,8 @@ def run_cli() -> None:
     last_printed_message = ""
     last_logged_turn_id = 0
 
+    print("\nГенерация ответа...", flush=True)
+    logging.info("CLI: invoking graph (initial)")
     state = graph.invoke(state)
     _update_observer_reports(state)
     turn_log = _extract_turn_log(state)
@@ -115,11 +136,14 @@ def run_cli() -> None:
         last_printed_message = last_message
 
     while True:
+        print("\nОжидание ответа кандидата...", flush=True)
         user_message = _prompt("\nКандидат: ")
         if _should_stop(user_message):
             state["stop_requested"] = True
         state["last_user_message"] = user_message
 
+        print("\nГенерация ответа...", flush=True)
+        logging.info("CLI: invoking graph (turn)")
         state = graph.invoke(state)
         _update_observer_reports(state)
 

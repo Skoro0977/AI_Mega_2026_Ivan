@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+import logging
+import time
 from typing import Any, TypedDict
 
 from pydantic import BaseModel
@@ -10,6 +12,7 @@ from pydantic import BaseModel
 from src.interview_coach.agents import build_observer_messages, get_observer_agent
 from src.interview_coach.models import ObserverReport, SkillMatrix, SkillTopicState, TurnLog
 
+LOGGER = logging.getLogger(__name__)
 
 class InterviewState(TypedDict, total=False):
     """State payload passed through the interview graph."""
@@ -70,7 +73,10 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
     model, temperature, max_retries = _resolve_observer_settings(state)
     agent = get_observer_agent(model, temperature, max_retries)
 
+    start = time.monotonic()
+    LOGGER.info("Observer: start (model=%s)", model)
     result = agent.invoke({"messages": messages})
+    LOGGER.info("Observer: done in %.2fs", time.monotonic() - start)
     report = _extract_report(result)
 
     updated_skill_matrix = _apply_skill_delta(state.get("skill_matrix"), report.skills_delta)
@@ -85,7 +91,7 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
 
 
 def _resolve_observer_settings(state: Mapping[str, Any]) -> tuple[str, float, int]:
-    model = str(state.get("observer_model") or state.get("model") or "gpt-4o-mini")
+    model = str(state.get("observer_model") or state.get("model") or "gpt-5-nano")
     temperature = float(state.get("observer_temperature") or state.get("temperature") or 0.2)
     max_retries = int(state.get("observer_max_retries") or state.get("max_retries") or 2)
     return model, temperature, max_retries
