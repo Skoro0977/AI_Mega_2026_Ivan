@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 import logging
 import select
 import sys
 import warnings
+from datetime import datetime
 from typing import Any
 
 warnings.filterwarnings(
@@ -83,9 +83,7 @@ def _collect_intake() -> InterviewIntake:
     name = _prompt("Имя кандидата: ")
     position = _prompt("Вакансия/роль: ")
     grade_raw = _prompt("Уровень (intern/junior/middle/senior/staff/principal): ")
-    experience = _prompt_multiline(
-        "Кратко об опыте (можно в несколько строк; пустая строка завершает ввод): "
-    )
+    experience = _prompt_multiline("Кратко об опыте (можно в несколько строк; пустая строка завершает ввод): ")
     grade = GradeTarget(grade_raw.strip().lower())
     return InterviewIntake(
         participant_name=name,
@@ -196,9 +194,7 @@ def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
     }
 
     graph = build_graph()
-    resolved_run_path = run_path or (
-        f"runs/interview_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    )
+    resolved_run_path = run_path or (f"runs/interview_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
     last_printed_message = ""
     last_logged_turn_id = 0
     stop_reason: str | None = None

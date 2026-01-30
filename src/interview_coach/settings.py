@@ -21,7 +21,9 @@ class AppSettings(BaseSettings):
         extra="ignore",
     )
 
+
 _settings: AppSettings = AppSettings()
+
 
 def get_settings() -> AppSettings:
     return _settings

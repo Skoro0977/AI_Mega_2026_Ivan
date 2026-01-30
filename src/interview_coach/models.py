@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from enum import Enum
-import math
 
 from pydantic import BaseModel, Field, field_validator
 

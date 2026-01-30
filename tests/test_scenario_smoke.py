@@ -76,9 +76,7 @@ def test_scenario_smoke(tmp_path, monkeypatch):
     from src.interview_coach.nodes import observer as observer_node
     from src.interview_coach.nodes import report as report_node
 
-    monkeypatch.setattr(
-        observer_node, "get_observer_agent", lambda *_args, **_kw: _FakeObserverAgent()
-    )
+    monkeypatch.setattr(observer_node, "get_observer_agent", lambda *_args, **_kw: _FakeObserverAgent())
     monkeypatch.setattr(
         interviewer_node,
         "get_interviewer_runnable",

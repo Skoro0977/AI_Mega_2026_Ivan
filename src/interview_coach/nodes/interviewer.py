@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import json
-import re
-from collections.abc import Mapping
 import logging
+import re
 import time
+from collections.abc import Mapping
+from difflib import SequenceMatcher
 from typing import Any, TypedDict
 
 from pydantic import BaseModel
-from difflib import SequenceMatcher
 
 from src.interview_coach.agents import get_interviewer_runnable
 from src.interview_coach.models import NextAction, ObserverFlags, ObserverReport, TurnLog
@@ -39,6 +39,7 @@ TOPIC_KEYWORDS: dict[str, tuple[str, ...]] = {
     "testing": ("test", "testing", "unit", "integration", "contract"),
     "rag_langchain": ("rag", "retrieval", "embedding", "vector", "langchain", "prompt"),
 }
+
 
 class InterviewState(TypedDict, total=False):
     """State payload passed through the interview graph."""

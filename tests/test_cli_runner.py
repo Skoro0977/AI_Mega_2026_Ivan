@@ -3,8 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from src.interview_coach.cli import run_cli
 from src.interview_coach.models import GradeTarget, InterviewIntake, TurnLog
 

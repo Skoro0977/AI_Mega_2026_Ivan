@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import logging
 import time
+from collections.abc import Mapping
 from typing import Any, TypedDict
 
 from pydantic import BaseModel
@@ -13,6 +13,7 @@ from src.interview_coach.agents import build_observer_messages, get_observer_age
 from src.interview_coach.models import ObserverReport, SkillMatrix, SkillTopicState, TurnLog
 
 LOGGER = logging.getLogger(__name__)
+
 
 class InterviewState(TypedDict, total=False):
     """State payload passed through the interview graph."""

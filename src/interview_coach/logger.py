@@ -69,8 +69,7 @@ def validate_schema(log_dict: dict[str, Any]) -> None:
     extra_top = actual_top - expected_top
     if missing_top or extra_top:
         raise ValueError(
-            "Invalid log schema (top-level keys). "
-            f"Missing: {sorted(missing_top)}; Extra: {sorted(extra_top)}"
+            f"Invalid log schema (top-level keys). Missing: {sorted(missing_top)}; Extra: {sorted(extra_top)}"
         )
     if not isinstance(log_dict["participant_name"], str):
         raise ValueError("Invalid log schema: participant_name must be a string.")
@@ -96,12 +95,8 @@ def validate_schema(log_dict: dict[str, Any]) -> None:
         if not isinstance(turn["turn_id"], int):
             raise ValueError(f"Invalid log schema: turn {index} turn_id must be int.")
         if not isinstance(turn["agent_visible_message"], str):
-            raise ValueError(
-                f"Invalid log schema: turn {index} agent_visible_message must be str."
-            )
+            raise ValueError(f"Invalid log schema: turn {index} agent_visible_message must be str.")
         if not isinstance(turn["user_message"], str):
             raise ValueError(f"Invalid log schema: turn {index} user_message must be str.")
         if not isinstance(turn["internal_thoughts"], str):
-            raise ValueError(
-                f"Invalid log schema: turn {index} internal_thoughts must be str."
-            )
+            raise ValueError(f"Invalid log schema: turn {index} internal_thoughts must be str.")

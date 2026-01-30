@@ -24,6 +24,8 @@ _INTERVIEWER_CACHE: dict[_ModelKey, Any] = {}
 _OBSERVER_CACHE: dict[_ModelKey, Any] = {}
 _REPORT_CACHE: dict[_ModelKey, Any] = {}
 
+_MAX_CONTEXT_STRING_LEN = 800
+
 
 def build_model(model: str, temperature: float, max_retries: int) -> ChatOpenAI:
     """Create or reuse a ChatOpenAI model instance."""
@@ -72,16 +74,15 @@ def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
     if state.get("last_user_message"):
         messages.append(HumanMessage(content=str(state["last_user_message"])))
 
-    context = _serialize(
-        {
-            "intake": _serialize(state.get("intake")),
-            "topic": state.get("topic"),
-            "difficulty": state.get("difficulty"),
-            "recent_turns": _serialize(_tail(state.get("turns"))),
-        }
-    )
-    if context:
-        messages.append(HumanMessage(content=f"Context: {context}"))
+    context = {
+        "intake": _compact_intake(state.get("intake")),
+        "topic": state.get("topic"),
+        "difficulty": state.get("difficulty"),
+        "recent_turns": _compact_turns(state.get("turns")),
+    }
+    context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)
+    context_text = json.dumps(context, ensure_ascii=False, indent=2)
+    messages.append(HumanMessage(content=f"Context (JSON):\n{context_text}"))
 
     return messages
 
@@ -160,6 +161,53 @@ def _serialize(value: Any) -> Any:
     if isinstance(value, (str, int, float, bool)):
         return value
     return str(value)
+
+
+def _truncate_text(value: str, limit: int) -> str:
+    if len(value) <= limit:
+        return value
+    trimmed = value[:limit].rstrip()
+    return f"{trimmed}..."
+
+
+def _truncate_strings(value: Any, limit: int) -> Any:
+    if isinstance(value, str):
+        return _truncate_text(value, limit)
+    if isinstance(value, dict):
+        return {key: _truncate_strings(val, limit) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_truncate_strings(item, limit) for item in value]
+    return value
+
+
+def _compact_intake(value: Any) -> Any:
+    data = _serialize(value)
+    if not isinstance(data, dict):
+        if isinstance(data, str):
+            return _truncate_text(data, _MAX_CONTEXT_STRING_LEN)
+        return data
+    allowed = ("participant_name", "position", "grade_target", "experience_summary")
+    compact = {key: data.get(key) for key in allowed if key in data}
+    if "experience_summary" in compact and compact["experience_summary"] is not None:
+        compact["experience_summary"] = _truncate_text(str(compact["experience_summary"]), _MAX_CONTEXT_STRING_LEN)
+    return compact
+
+
+def _compact_turns(value: Any) -> list[dict[str, Any]]:
+    turns = _tail(value)
+    compacted: list[dict[str, Any]] = []
+    for turn in turns:
+        data = _serialize(turn)
+        if isinstance(data, dict):
+            compact: dict[str, Any] = {}
+            for key in ("turn_id", "agent_visible_message", "user_message"):
+                if key in data:
+                    compact[key] = data[key]
+            if compact:
+                compacted.append(compact)
+                continue
+        compacted.append({"text": _truncate_text(str(data), _MAX_CONTEXT_STRING_LEN)})
+    return compacted
 
 
 def _coerce_messages(messages: Iterable[Any]) -> list[BaseMessage]:

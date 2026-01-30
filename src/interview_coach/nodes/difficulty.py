@@ -9,6 +9,7 @@ from src.interview_coach.models import ObserverFlags, ObserverReport
 
 LOGGER = logging.getLogger(__name__)
 
+
 class InterviewState(TypedDict, total=False):
     """State payload passed through the interview graph."""
 
