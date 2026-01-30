@@ -15,6 +15,8 @@
     - `difficulty.py`
     - `interviewer.py`
     - `observer.py`
+    - `report.py`
+    - `router.py`
 - `prompts/`
   - `interviewer_system.md`
   - `observer_system.md`
