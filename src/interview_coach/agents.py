@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Iterable, Mapping
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
@@ -14,7 +15,6 @@ from pydantic import BaseModel
 
 from src.interview_coach.models import FinalFeedback, ObserverReport
 from src.interview_coach.prompts import load_prompt
-
 
 _ModelKey = tuple[str, float, int]
 

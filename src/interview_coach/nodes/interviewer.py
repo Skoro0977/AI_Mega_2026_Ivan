@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping, TypedDict
+from collections.abc import Mapping
+from typing import Any, TypedDict
 
 from pydantic import BaseModel
 
@@ -160,9 +161,7 @@ def _build_internal_thoughts(report: ObserverReport | None, strategy: str) -> st
         f"off_topic={flags.off_topic}, hallucination={flags.hallucination}, "
         f"contradiction={flags.contradiction}, role_reversal={flags.role_reversal}"
     )
-    observer_summary = (
-        f"topic={report.detected_topic}, next_action={report.recommended_next_action}, {flags_summary}"
-    )
+    observer_summary = f"topic={report.detected_topic}, next_action={report.recommended_next_action}, {flags_summary}"
     return f"[Observer]: {observer_summary}. [Interviewer]: strategy={strategy}."
 
 

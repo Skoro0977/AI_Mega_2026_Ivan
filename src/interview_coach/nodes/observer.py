@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, TypedDict
+from collections.abc import Mapping
+from typing import Any, TypedDict
 
 from pydantic import BaseModel
 
@@ -128,9 +129,7 @@ def _clamp_level(value: float) -> int:
     return max(1, min(5, rounded))
 
 
-def _update_topics_covered(
-    topics: list[str] | None, detected_topic: str | None
-) -> list[str]:
+def _update_topics_covered(topics: list[str] | None, detected_topic: str | None) -> list[str]:
     normalized = [topic for topic in (topics or []) if topic]
     if detected_topic:
         topic = detected_topic.strip()

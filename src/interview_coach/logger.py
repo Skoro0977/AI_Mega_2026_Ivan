@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -15,7 +15,7 @@ class InterviewLogger:
     """Collects interview turns and writes them to a JSON log file."""
 
     def __init__(self) -> None:
-        self.intake: Optional[InterviewIntake] = None
+        self.intake: InterviewIntake | None = None
         self.turns: list[TurnLog] = []
         self.final_feedback: str | dict[str, Any] | None = None
 
