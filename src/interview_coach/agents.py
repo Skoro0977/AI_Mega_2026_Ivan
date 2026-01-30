@@ -13,7 +13,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from src.interview_coach.models import FinalFeedback, ObserverReport
+from src.interview_coach.models import FinalFeedback, ObserverReport, PlannedTopics
 from src.interview_coach.prompts import load_prompt
 from src.interview_coach.settings import get_settings
 
@@ -23,6 +23,7 @@ _MODEL_CACHE: dict[_ModelKey, ChatOpenAI] = {}
 _INTERVIEWER_CACHE: dict[_ModelKey, Any] = {}
 _OBSERVER_CACHE: dict[_ModelKey, Any] = {}
 _REPORT_CACHE: dict[_ModelKey, Any] = {}
+_PLANNER_CACHE: dict[_ModelKey, Any] = {}
 
 _MAX_CONTEXT_STRING_LEN = 800
 
@@ -103,6 +104,17 @@ def build_report_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
     ]
 
 
+def build_planner_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
+    """Build the message list for the planner agent invocation."""
+    context = {"intake_data": _compact_intake(state.get("intake"))}
+    context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)
+    content = json.dumps(context, ensure_ascii=False, indent=2)
+    return [
+        SystemMessage(content=load_prompt("planner_system.md")),
+        HumanMessage(content=content),
+    ]
+
+
 def get_interviewer_runnable(model: str, temperature: float, max_retries: int) -> Any:
     """Return a cached interviewer runnable pipeline."""
     key = (model, temperature, max_retries)
@@ -137,6 +149,17 @@ def get_report_agent(model: str, temperature: float, max_retries: int) -> Any:
             response_format=FinalFeedback,
         )
     return _REPORT_CACHE[key]
+
+
+def get_planner_agent(model: str, temperature: float, max_retries: int) -> Any:
+    """Return a cached planner agent."""
+    key = (model, temperature, max_retries)
+    if key not in _PLANNER_CACHE:
+        _PLANNER_CACHE[key] = create_agent(
+            build_model(*key),
+            response_format=PlannedTopics,
+        )
+    return _PLANNER_CACHE[key]
 
 
 def _tail(value: Any, limit: int = 5) -> list[Any]:

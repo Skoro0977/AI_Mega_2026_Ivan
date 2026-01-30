@@ -61,6 +61,25 @@ class InterviewIntake(BaseModel):
     experience_summary: str
 
 
+class PlannedTopics(BaseModel):
+    """Planner output with ordered interview topics."""
+
+    topics: list[str] = Field(default_factory=list)
+
+    @field_validator("topics")
+    @classmethod
+    def validate_topics(cls, value: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        for item in value:
+            text = str(item).strip()
+            if not text:
+                raise ValueError("topics must be non-empty strings")
+            cleaned.append(text)
+        if len(cleaned) != 10:
+            raise ValueError("topics must contain exactly 10 items")
+        return cleaned
+
+
 class ObserverFlags(BaseModel):
     off_topic: bool = False
     hallucination: bool = False
