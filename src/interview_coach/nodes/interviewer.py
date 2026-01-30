@@ -91,6 +91,7 @@ def run_interviewer(state: InterviewState) -> InterviewerUpdate:
             state.get("expert_evaluations"),
             state.get("difficulty"),
             state.get("difficulty_reason"),
+            state.get("turns"),
             agent_visible_message,
         ),
         "pending_report": report,
@@ -159,13 +160,13 @@ def _build_payload(
             "advance_topic": advance_topic,
         },
         "skill_matrix": _serialize(state.get("skill_matrix")),
-        "recent_turns": _serialize(_tail(state.get("turns"))),
+        "recent_turns": _serialize(_tail(state.get("turns"), limit=5)),
         "last_user_message": state.get("last_user_message") or "",
         "last_interviewer_message": state.get("last_interviewer_message") or "",
         "strategy": strategy,
         "difficulty": state.get("difficulty"),
         "topics_covered": state.get("topics_covered") or [],
-        "asked_questions": state.get("asked_questions") or [],
+        "asked_questions": _tail(state.get("asked_questions"), limit=10),
         "planned_topics": planned_topics,
         "current_topic_index": current_topic_index,
         "current_topic": current_topic,
@@ -244,6 +245,7 @@ def _build_internal_thoughts(
     expert_evaluations: dict[ExpertRole, str] | None,
     difficulty: str | None,
     difficulty_reason: str | None,
+    turns: list[TurnLog] | None,
     question: str,
 ) -> str:
     parts: list[str] = []
@@ -266,7 +268,21 @@ def _build_internal_thoughts(
     parts.extend(_format_expert_thoughts(expert_evaluations))
     reason = "based on observer signal and current topic"
     parts.append(f"[Interviewer]: strategy={strategy}, question={question}, reason={reason}.")
+    memory_note = _recent_memory_note(turns)
+    if memory_note:
+        parts.append(memory_note)
     return " ".join(parts)
+
+
+def _recent_memory_note(turns: list[TurnLog] | None) -> str | None:
+    if not turns or len(turns) < 3:
+        return None
+    reference = turns[-3]
+    user_text = (reference.user_message or "").strip()
+    if not user_text:
+        return None
+    snippet = user_text if len(user_text) <= 140 else user_text[:140].rstrip() + "..."
+    return f"[Interviewer]: ты говорил 3 сообщения назад: {snippet}."
 
 
 def _format_expert_thoughts(expert_evaluations: dict[ExpertRole, str] | None) -> list[str]:

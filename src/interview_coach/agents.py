@@ -85,6 +85,7 @@ def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
         "user_message": state.get("last_user_message") or "",
         "kickoff": not bool((state.get("last_user_message") or "").strip()),
         "recent_turns": _compact_turns(state.get("turns")),
+        "asked_questions": _tail(state.get("asked_questions"), limit=10),
     }
     context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)
     context_text = json.dumps(context, ensure_ascii=False, indent=2)
