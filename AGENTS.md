@@ -7,19 +7,12 @@
 ## 2) Repo Structure
 - `src/interview_coach/` — основной пакет
   - `__init__.py`
+  - `agents.py` — сборка агентов и подготовка сообщений
   - `models.py` — Pydantic модели
   - `logger.py` — интервью-логгер
-  - `llm.py` — LLM клиент/провайдер-агностик
   - `prompts.py` — загрузка промптов из `prompts/`
-  - `graph.py` — LangGraph граф
   - `nodes/` — узлы графа
-    - `interviewer.py`
     - `observer.py`
-    - `difficulty.py`
-    - `router.py`
-    - `report.py`
-  - `cli.py` — CLI runner
-  - `scenarios.py` — скриптовые прогоны секретных сценариев
 - `prompts/`
   - `interviewer_system.md`
   - `observer_system.md`
