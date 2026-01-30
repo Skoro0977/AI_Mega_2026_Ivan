@@ -8,7 +8,7 @@ from typing import Any, TypedDict
 from pydantic import BaseModel
 
 from src.interview_coach.agents import build_observer_messages, get_observer_agent
-from src.interview_coach.models import ObserverReport, SkillMatrix, SkillTopicState
+from src.interview_coach.models import ObserverReport, SkillMatrix, SkillTopicState, TurnLog
 
 
 class InterviewState(TypedDict, total=False):
@@ -29,6 +29,10 @@ class InterviewState(TypedDict, total=False):
     difficulty: int
     turns: list[Any]
     last_observer_report: ObserverReport | None
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: int | None
     skill_matrix: SkillMatrix | dict[str, float] | None
     topics_covered: list[str] | None
 
@@ -39,10 +43,28 @@ class ObserverUpdate(TypedDict, total=False):
     last_observer_report: ObserverReport
     skill_matrix: SkillMatrix | dict[str, float]
     topics_covered: list[str]
+    turns: list[TurnLog]
+    turn_log: TurnLog
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: int | None
 
 
 def run_observer(state: InterviewState) -> ObserverUpdate:
     """Invoke the observer agent and return the partial state update."""
+
+    update: ObserverUpdate = {}
+    turn_log = _build_turn_log_from_pending(state)
+    if turn_log is not None:
+        turns = list(state.get("turns") or [])
+        turns.append(turn_log)
+        update["turns"] = turns
+        update["turn_log"] = turn_log
+        update["pending_interviewer_message"] = None
+        update["pending_internal_thoughts"] = None
+        update["pending_report"] = None
+        update["pending_difficulty"] = None
 
     messages = build_observer_messages(state)
     model, temperature, max_retries = _resolve_observer_settings(state)
@@ -54,10 +76,8 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
     updated_skill_matrix = _apply_skill_delta(state.get("skill_matrix"), report.skills_delta)
     updated_topics = _update_topics_covered(state.get("topics_covered"), report.detected_topic)
 
-    update: ObserverUpdate = {
-        "last_observer_report": report,
-        "topics_covered": updated_topics,
-    }
+    update["last_observer_report"] = report
+    update["topics_covered"] = updated_topics
     if updated_skill_matrix is not None:
         update["skill_matrix"] = updated_skill_matrix
 
@@ -69,6 +89,32 @@ def _resolve_observer_settings(state: Mapping[str, Any]) -> tuple[str, float, in
     temperature = float(state.get("observer_temperature") or state.get("temperature") or 0.2)
     max_retries = int(state.get("observer_max_retries") or state.get("max_retries") or 2)
     return model, temperature, max_retries
+
+
+def _build_turn_log_from_pending(state: InterviewState) -> TurnLog | None:
+    pending_message = state.get("pending_interviewer_message")
+    if not pending_message:
+        return None
+    user_message = state.get("last_user_message") or ""
+    if not user_message.strip():
+        return None
+    pending_report = state.get("pending_report")
+    pending_internal_thoughts = state.get("pending_internal_thoughts") or ""
+    pending_difficulty = state.get("pending_difficulty")
+    turns = list(state.get("turns") or [])
+    turn_id = _next_turn_id(turns)
+
+    return TurnLog(
+        turn_id=turn_id,
+        agent_visible_message=pending_message,
+        user_message=user_message,
+        internal_thoughts=pending_internal_thoughts,
+        topic=pending_report.detected_topic if pending_report else None,
+        difficulty_before=pending_difficulty,
+        difficulty_after=pending_difficulty,
+        flags=pending_report.flags if pending_report else None,
+        skills_delta=pending_report.skills_delta if pending_report else None,
+    )
 
 
 def _extract_report(result: Any) -> ObserverReport:
@@ -136,3 +182,10 @@ def _update_topics_covered(topics: list[str] | None, detected_topic: str | None)
         if topic and topic not in normalized:
             normalized.append(topic)
     return normalized
+
+
+def _next_turn_id(turns: list[TurnLog]) -> int:
+    if not turns:
+        return 1
+    last = turns[-1]
+    return last.turn_id + 1

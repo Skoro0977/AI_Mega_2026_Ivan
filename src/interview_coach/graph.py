@@ -37,6 +37,10 @@ class InterviewState(TypedDict, total=False):
     chat_history: list[Any]
     last_user_message: str
     last_interviewer_message: str
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: int | None
     last_observer_report: ObserverReport | None
     skill_matrix: SkillMatrix | dict[str, float] | None
     topics_covered: list[str]

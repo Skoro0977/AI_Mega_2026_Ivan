@@ -3,7 +3,14 @@
 from __future__ import annotations
 
 from datetime import datetime
+import warnings
 from typing import Any
+
+warnings.filterwarnings(
+    "ignore",
+    message="Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.",
+    category=UserWarning,
+)
 
 from src.interview_coach.graph import build_graph
 from src.interview_coach.logger import InterviewLogger
@@ -84,18 +91,28 @@ def run_cli() -> None:
         "turns": [],
         "observer_reports": [],
         "stop_requested": False,
+        "pending_interviewer_message": None,
+        "pending_internal_thoughts": None,
+        "pending_report": None,
+        "pending_difficulty": None,
     }
 
     graph = build_graph()
     run_path = f"runs/interview_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    last_printed_message = ""
+    last_logged_turn_id = 0
 
     state = graph.invoke(state)
     _update_observer_reports(state)
     turn_log = _extract_turn_log(state)
-    if turn_log:
+    if turn_log and turn_log.turn_id > last_logged_turn_id:
         logger.append_turn(turn_log)
-        print(f"\nИнтервьюер: {turn_log.agent_visible_message}")
+        last_logged_turn_id = turn_log.turn_id
         logger.save(run_path)
+    last_message = state.get("last_interviewer_message") or ""
+    if last_message and last_message != last_printed_message:
+        print(f"\nИнтервьюер: {last_message}")
+        last_printed_message = last_message
 
     while True:
         user_message = _prompt("\nКандидат: ")
@@ -107,9 +124,14 @@ def run_cli() -> None:
         _update_observer_reports(state)
 
         turn_log = _extract_turn_log(state)
-        if turn_log:
+        if turn_log and turn_log.turn_id > last_logged_turn_id:
             logger.append_turn(turn_log)
-            print(f"\nИнтервьюер: {turn_log.agent_visible_message}")
+            last_logged_turn_id = turn_log.turn_id
+
+        last_message = state.get("last_interviewer_message") or ""
+        if last_message and last_message != last_printed_message:
+            print(f"\nИнтервьюер: {last_message}")
+            last_printed_message = last_message
 
         final_feedback = state.get("final_feedback")
         final_feedback_text = state.get("final_feedback_text")

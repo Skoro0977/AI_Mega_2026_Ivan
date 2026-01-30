@@ -24,6 +24,10 @@ class InterviewState(TypedDict, total=False):
     last_user_message: str
     last_interviewer_message: str
     last_observer_report: ObserverReport | None
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: int | None
     turns: list[TurnLog]
     difficulty: int
     topics_covered: list[str]
@@ -36,9 +40,11 @@ class InterviewerUpdate(TypedDict, total=False):
     """Partial state update emitted by the interviewer node."""
 
     last_interviewer_message: str
-    turns: list[TurnLog]
+    pending_interviewer_message: str | None
+    pending_internal_thoughts: str | None
+    pending_report: ObserverReport | None
+    pending_difficulty: int | None
     asked_questions: list[str]
-    turn_log: TurnLog
 
 
 def run_interviewer(state: InterviewState) -> InterviewerUpdate:
@@ -53,16 +59,14 @@ def run_interviewer(state: InterviewState) -> InterviewerUpdate:
 
     agent_visible_message = runnable.invoke({"context": json.dumps(payload, ensure_ascii=False)})
 
-    turns = list(state.get("turns") or [])
-    turn_log = _build_turn_log(state, report, agent_visible_message, strategy, turns)
-    turns.append(turn_log)
-
     asked_questions = _update_asked_questions(state.get("asked_questions"), agent_visible_message)
 
     return {
         "last_interviewer_message": agent_visible_message,
-        "turn_log": turn_log,
-        "turns": turns,
+        "pending_interviewer_message": agent_visible_message,
+        "pending_internal_thoughts": _build_internal_thoughts(report, strategy),
+        "pending_report": report,
+        "pending_difficulty": state.get("difficulty"),
         "asked_questions": asked_questions,
     }
 
@@ -121,36 +125,6 @@ def _build_payload(
         "asked_questions": state.get("asked_questions") or [],
     }
     return payload
-
-
-def _build_turn_log(
-    state: InterviewState,
-    report: ObserverReport | None,
-    agent_visible_message: str,
-    strategy: str,
-    turns: list[TurnLog],
-) -> TurnLog:
-    turn_id = _next_turn_id(turns)
-    internal_thoughts = _build_internal_thoughts(report, strategy)
-
-    return TurnLog(
-        turn_id=turn_id,
-        agent_visible_message=agent_visible_message,
-        user_message=state.get("last_user_message") or "",
-        internal_thoughts=internal_thoughts,
-        topic=report.detected_topic if report else None,
-        difficulty_before=state.get("difficulty"),
-        difficulty_after=state.get("difficulty"),
-        flags=report.flags if report else None,
-        skills_delta=report.skills_delta if report else None,
-    )
-
-
-def _next_turn_id(turns: list[TurnLog]) -> int:
-    if not turns:
-        return 1
-    last = turns[-1]
-    return last.turn_id + 1
 
 
 def _build_internal_thoughts(report: ObserverReport | None, strategy: str) -> str:
