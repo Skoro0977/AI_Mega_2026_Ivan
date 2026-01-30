@@ -1,6 +1,10 @@
 # AGENTS.md
 
-## 1) Repo Structure
+## 1) Mission / Scope
+- Проект: **Multi-Agent Interview Coach**
+- Требования ТЗ: **2+ роли** (Interviewer + Observer), **hidden reflection**, **context awareness**, **adaptability**, **robustness**, **финальный отчёт**
+
+## 2) Repo Structure
 - `src/interview_coach/` — основной пакет
   - `__init__.py`
   - `models.py` — Pydantic модели
@@ -26,19 +30,24 @@
 - `pyproject.toml` — ruff, mypy, pytest конфиг
 - `README.md`
 
-## 2) Code Style & Quality
+## 3) Code Style & Quality
 - PEP8, строгая типизация (mypy-friendly), **Pydantic v2**
-- **ruff (lint + format)** — основной инструмент качества
+- **ruff format** и **ruff check** — основной инструмент качества
 - Запрет на “god file”: модули небольшие, функции короткие
 - Никакой магии: **явные модели, явные enums, явные контракты**
 
-## 3) Prompting Rules (важно для зачёта)
+## 4) LangChain / LangGraph Principles
+- Роли реализуем как **LangChain agents / runnables**
+- **Structured output** получаем через `create_agent(response_format=...)` и читаем из `structured_response` (без ручного парсинга)
+- Оркестрация диалога и hidden reflection — в **LangGraph StateGraph** (узлы `State -> Partial[State]`, граф `compile`)
+
+## 5) Prompting Rules (важно для зачёта)
 - НЕ один большой промпт: **строго отдельные агенты и отдельные prompt-файлы**
 - **Observer возвращает строго JSON по схеме** (никакой “лирики”)
 - **Interviewer не делает факт-чек и не выставляет оценку**
 - **Hidden reflection**: перед каждым видимым ответом Interviewer должен опираться на скрытый отчёт Observer/Manager, и это отражено в `internal_thoughts` лога
 
-## 4) Logging Contract
+## 6) Logging Contract
 - `interview_log.json` обязателен
 - Каждый `turn` содержит:
   - `turn_id`
@@ -46,12 +55,13 @@
   - `user_message`
   - `internal_thoughts` в формате: `"[Observer]: ... [Interviewer]: ..."`
 - Логи читаемые: без гигантских “простыней”, но достаточно информативные
+- `interview_log.json` совместим с ТЗ, `internal_thoughts` читаемый
 
-## 5) CLI / UX
+## 7) CLI / UX
 - Команда стопа: **"стоп"**, **"стоп интервью"**, **"stop"**
 - После стопа генерируется **финальный отчёт** по структуре ТЗ
 
-## 6) Definition of Done
+## 8) Definition of Done
 - `ruff format` и `ruff check` проходят
 - `pytest` проходит
 - Есть минимум 1 пример прогона в `runs/` (sample log)
