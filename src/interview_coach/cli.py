@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime
 import logging
+import select
+import sys
 import warnings
 from typing import Any
 
@@ -27,19 +29,47 @@ def _sanitize_input(value: str) -> str:
 
 
 def _prompt(text: str) -> str:
-    raw = input(text)
-    cleaned = _sanitize_input(raw)
-    if cleaned != raw:
+    print(text, end="", flush=True)
+    raw_bytes = sys.stdin.buffer.readline()
+    if not raw_bytes:
+        logging.info("CLI: input EOF")
+        return ""
+    lines = [raw_bytes]
+    extra_lines = 0
+    # Capture pasted multi-line input without requiring an extra blank line.
+    while True:
+        ready, _, _ = select.select([sys.stdin], [], [], 0.05)
+        if not ready:
+            break
+        more = sys.stdin.buffer.readline()
+        if not more:
+            break
+        lines.append(more)
+        extra_lines += 1
+        if extra_lines >= 200:
+            logging.info("CLI: input truncated (too many lines)")
+            break
+    decoded_lines = [line.decode("utf-8", errors="ignore") for line in lines]
+    cleaned_lines = [_sanitize_input(line).rstrip() for line in decoded_lines]
+    cleaned = "\n".join(cleaned_lines).strip()
+    if cleaned != "".join(decoded_lines):
         logging.info("CLI: stripped non-printable characters from input")
-    logging.info("CLI: input received (len=%d)", len(cleaned))
+    if extra_lines:
+        logging.info("CLI: input received (lines=%d, len=%d)", extra_lines + 1, len(cleaned))
+    else:
+        logging.info("CLI: input received (len=%d)", len(cleaned))
     return cleaned
 
 
 def _prompt_multiline(text: str) -> str:
-    print(text, end="")
+    print(text, end="", flush=True)
     lines: list[str] = []
     while True:
-        line = input()
+        raw_bytes = sys.stdin.buffer.readline()
+        if not raw_bytes:
+            logging.info("CLI: multiline input EOF")
+            break
+        line = raw_bytes.decode("utf-8", errors="ignore")
         if not line.strip():
             break
         lines.append(_sanitize_input(line).rstrip())

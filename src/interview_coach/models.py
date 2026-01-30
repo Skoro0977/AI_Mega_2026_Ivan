@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from enum import Enum
+import math
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -135,6 +137,26 @@ class ObserverReport(BaseModel):
     def clamp_confidence(cls, value: object) -> float:
         return _clamp(value, 0.0, 1.0)
 
+    @field_validator("skills_delta", mode="before")
+    @classmethod
+    def coerce_skills_delta(cls, value: object) -> dict[str, float] | None:
+        if value is None:
+            return None
+        if not isinstance(value, Mapping):
+            return None
+        cleaned: dict[str, float] = {}
+        for key, raw in value.items():
+            if not isinstance(key, str):
+                continue
+            try:
+                numeric = float(raw)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                continue
+            if not math.isfinite(numeric):
+                continue
+            cleaned[key] = numeric
+        return cleaned or None
+
 
 class Decision(BaseModel):
     grade: GradeTarget
@@ -145,6 +167,25 @@ class Decision(BaseModel):
 class HardSkillsFeedback(BaseModel):
     confirmed: list[str] = Field(default_factory=list)
     gaps_with_correct_answers: dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("gaps_with_correct_answers", mode="before")
+    @classmethod
+    def coerce_gaps(cls, value: object) -> dict[str, str]:
+        if value is None:
+            return {}
+        if not isinstance(value, Mapping):
+            return {}
+        cleaned: dict[str, str] = {}
+        for key, raw in value.items():
+            if not isinstance(key, str):
+                continue
+            if isinstance(raw, list):
+                text = " ".join(str(item) for item in raw if item is not None).strip()
+            else:
+                text = str(raw).strip()
+            if text:
+                cleaned[key] = text
+        return cleaned
 
 
 class SoftSkillsFeedback(BaseModel):
