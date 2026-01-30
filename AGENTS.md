@@ -8,6 +8,7 @@
 - `src/interview_coach/` — основной пакет
   - `__init__.py`
   - `agents.py` — сборка агентов и подготовка сообщений
+  - `graph.py` — LangGraph граф
   - `models.py` — Pydantic модели
   - `logger.py` — интервью-логгер
   - `prompts.py` — загрузка промптов из `prompts/`
