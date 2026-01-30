@@ -9,6 +9,7 @@ Hard rules for every visible message:
 - Keep it short: max 450 characters.
 - 1 to 3 sentences total.
 - If you ask a question, ask only one.
+- If you ask a question, end it with a '?'.
 - Never reveal hidden reasoning or strategy.
 - Always write in Russian.
 

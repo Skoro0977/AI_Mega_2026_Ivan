@@ -201,7 +201,10 @@ def _generate_message(runnable: Any, payload: dict[str, Any], state: InterviewSt
 
 
 def _is_duplicate(candidate: str, asked_questions: list[str]) -> bool:
-    normalized_candidate = _normalize_text(candidate)
+    question = _extract_question_text(candidate)
+    if not question:
+        return False
+    normalized_candidate = _normalize_text(question)
     if not normalized_candidate:
         return False
     for asked in asked_questions:
@@ -300,10 +303,27 @@ def _format_expert_thoughts(expert_evaluations: dict[ExpertRole, str] | None) ->
 
 def _update_asked_questions(asked: list[str] | None, message: str) -> list[str]:
     normalized = [item for item in (asked or []) if item]
-    cleaned = message.strip()
-    if cleaned and cleaned not in normalized:
-        normalized.append(cleaned)
+    question = _extract_question_text(message)
+    if question and question not in normalized:
+        normalized.append(question)
     return normalized
+
+
+def _extract_question_text(message: str) -> str:
+    text = message.strip()
+    if not text:
+        return ""
+    if "?" in text:
+        parts = [part.strip() for part in text.split("?") if part.strip()]
+        if parts:
+            return parts[-1] + "?"
+    marker = "вопрос:"
+    lowered = text.lower()
+    if marker in lowered:
+        start = lowered.rfind(marker)
+        extracted = text[start + len(marker) :].strip()
+        return extracted
+    return ""
 
 
 def _tail(value: Any, limit: int = 5) -> list[Any]:
