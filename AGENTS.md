@@ -12,6 +12,8 @@
   - `logger.py` — интервью-логгер
   - `prompts.py` — загрузка промптов из `prompts/`
   - `nodes/` — узлы графа
+    - `difficulty.py`
+    - `interviewer.py`
     - `observer.py`
 - `prompts/`
   - `interviewer_system.md`
