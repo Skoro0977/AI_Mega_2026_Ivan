@@ -83,6 +83,7 @@ def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
         "current_topic": _topic_from_plan(state),
         "agent_visible_message": state.get("last_interviewer_message") or "",
         "user_message": state.get("last_user_message") or "",
+        "kickoff": not bool((state.get("last_user_message") or "").strip()),
         "recent_turns": _compact_turns(state.get("turns")),
     }
     context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)

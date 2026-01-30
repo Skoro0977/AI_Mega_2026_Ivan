@@ -76,8 +76,6 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
         update["pending_difficulty"] = None
 
     last_user_message = (state.get("last_user_message") or "").strip()
-    if not last_user_message:
-        return update
 
     messages = build_observer_messages(state)
     model, temperature, max_retries = _resolve_observer_settings(state)
@@ -101,7 +99,13 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
     if next_index != current_index:
         update["current_topic_index"] = next_index
 
-    update["pending_expert_nodes"] = decision.expert_roles
+    if not last_user_message:
+        update["pending_expert_nodes"] = []
+    else:
+        update["pending_expert_nodes"] = decision.expert_roles
+
+    if current_topic and not report.detected_topic.strip():
+        report = report.model_copy(update={"detected_topic": current_topic})
     update["last_observer_report"] = report
     detected_topic = report.detected_topic or current_topic
     update["topics_covered"] = _update_topics_covered(state.get("topics_covered"), detected_topic)

@@ -9,6 +9,7 @@ You receive context JSON with:
 - current_topic: current topic name (if available)
 - agent_visible_message: last interviewer question
 - user_message: last candidate answer
+- kickoff: true if there is no candidate answer yet (first turn)
 - recent_turns: last few turns
 
 Your tasks:
@@ -35,3 +36,6 @@ Hard rules:
 - If unsure, prefer decision.ask_deeper = true.
 - Always select at least one expert role.
 - Be concise and respond in Russian.
+
+Kickoff rule:
+- If kickoff=true (no user_message), still produce a report/decision using intake + planned_topics/current_topic. Use decision.ask_deeper=true and decision.advance_topic=false. Set flags to false unless strong reasons exist. Choose a reasonable detected_topic and next_action=ASK_DEEPER.

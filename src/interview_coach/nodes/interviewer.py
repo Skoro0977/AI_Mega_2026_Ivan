@@ -86,6 +86,8 @@ def run_interviewer(state: InterviewState) -> InterviewerUpdate:
             report,
             strategy,
             state.get("expert_evaluations"),
+            state.get("difficulty"),
+            agent_visible_message,
         ),
         "pending_report": report,
         "pending_difficulty": state.get("difficulty"),
@@ -235,6 +237,8 @@ def _build_internal_thoughts(
     report: ObserverReport | None,
     strategy: str,
     expert_evaluations: dict[ExpertRole, str] | None,
+    difficulty: int | None,
+    question: str,
 ) -> str:
     parts: list[str] = []
     if report is None:
@@ -247,12 +251,14 @@ def _build_internal_thoughts(
             f"ask_deeper={flags.ask_deeper}"
         )
         observer_summary = (
-            f"topic={report.detected_topic}, next_action={report.recommended_next_action}, {flags_summary}"
+            f"topic={report.detected_topic}, difficulty={difficulty}, "
+            f"next_action={report.recommended_next_action}, {flags_summary}"
         )
         parts.append(f"[Observer]: {observer_summary}.")
 
     parts.extend(_format_expert_thoughts(expert_evaluations))
-    parts.append(f"[Interviewer]: strategy={strategy}.")
+    reason = "based on observer signal and current topic"
+    parts.append(f"[Interviewer]: strategy={strategy}, question={question}, reason={reason}.")
     return " ".join(parts)
 
 
