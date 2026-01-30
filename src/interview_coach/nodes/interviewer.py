@@ -186,6 +186,10 @@ def _serialize(value: Any) -> Any:
         return None
     if isinstance(value, BaseModel):
         return value.model_dump()
-    if isinstance(value, (dict, list, str, int, float, bool)):
+    if isinstance(value, dict):
+        return {key: _serialize(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_serialize(item) for item in value]
+    if isinstance(value, (str, int, float, bool)):
         return value
     return str(value)

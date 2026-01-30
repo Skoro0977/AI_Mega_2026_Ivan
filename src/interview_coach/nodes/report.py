@@ -41,7 +41,7 @@ def run_report(state: InterviewState) -> ReportUpdate:
     model, temperature, max_retries = _resolve_report_settings(state)
     agent = get_report_agent(model, temperature, max_retries)
 
-    result = agent.invoke(messages)
+    result = agent.invoke({"messages": messages})
     feedback = _extract_feedback(result)
 
     update: ReportUpdate = {"final_feedback": feedback}

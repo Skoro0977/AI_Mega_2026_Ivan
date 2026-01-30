@@ -16,11 +16,24 @@ def _prompt(text: str) -> str:
     return input(text).strip()
 
 
+def _prompt_multiline(text: str) -> str:
+    print(text, end="")
+    lines: list[str] = []
+    while True:
+        line = input()
+        if not line.strip():
+            break
+        lines.append(line.rstrip())
+    return "\n".join(lines).strip()
+
+
 def _collect_intake() -> InterviewIntake:
     name = _prompt("Имя кандидата: ")
     position = _prompt("Вакансия/роль: ")
     grade_raw = _prompt("Уровень (intern/junior/middle/senior/staff/principal): ")
-    experience = _prompt("Кратко об опыте: ")
+    experience = _prompt_multiline(
+        "Кратко об опыте (можно в несколько строк; пустая строка завершает ввод): "
+    )
     grade = GradeTarget(grade_raw.strip().lower())
     return InterviewIntake(
         participant_name=name,
@@ -81,7 +94,7 @@ def run_cli() -> None:
     turn_log = _extract_turn_log(state)
     if turn_log:
         logger.append_turn(turn_log)
-        print(turn_log.agent_visible_message)
+        print(f"\nИнтервьюер: {turn_log.agent_visible_message}")
         logger.save(run_path)
 
     while True:
@@ -96,7 +109,7 @@ def run_cli() -> None:
         turn_log = _extract_turn_log(state)
         if turn_log:
             logger.append_turn(turn_log)
-            print(turn_log.agent_visible_message)
+            print(f"\nИнтервьюер: {turn_log.agent_visible_message}")
 
         final_feedback = state.get("final_feedback")
         final_feedback_text = state.get("final_feedback_text")

@@ -48,7 +48,7 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
     model, temperature, max_retries = _resolve_observer_settings(state)
     agent = get_observer_agent(model, temperature, max_retries)
 
-    result = agent.invoke(messages)
+    result = agent.invoke({"messages": messages})
     report = _extract_report(result)
 
     updated_skill_matrix = _apply_skill_delta(state.get("skill_matrix"), report.skills_delta)

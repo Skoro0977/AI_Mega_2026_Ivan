@@ -72,14 +72,12 @@ def build_graph() -> Any:
         {
             "final_report": "final_report",
             "observer": "observer",
-            "difficulty": "difficulty",
-            "interviewer": "interviewer",
         },
     )
 
     graph_builder.add_edge("observer", "difficulty")
     graph_builder.add_edge("difficulty", "interviewer")
-    graph_builder.add_edge("interviewer", "router")
+    graph_builder.add_edge("interviewer", END)
     graph_builder.add_edge("final_report", END)
 
     return graph_builder.compile()

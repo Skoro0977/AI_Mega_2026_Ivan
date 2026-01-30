@@ -153,7 +153,11 @@ def _serialize(value: Any) -> Any:
         return value.model_dump()
     if isinstance(value, BaseMessage):
         return {"role": value.type, "content": value.content}
-    if isinstance(value, (dict, list, str, int, float, bool)):
+    if isinstance(value, dict):
+        return {key: _serialize(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_serialize(item) for item in value]
+    if isinstance(value, (str, int, float, bool)):
         return value
     return str(value)
 

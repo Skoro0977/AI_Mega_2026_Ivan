@@ -11,7 +11,7 @@ class InterviewState(TypedDict, total=False):
     stop_requested: bool
 
 
-NodeName = Literal["final_report", "observer", "difficulty", "interviewer"]
+NodeName = Literal["final_report", "observer"]
 
 
 def route(state: InterviewState) -> NodeName:
