@@ -50,9 +50,7 @@ def _assert_internal_thoughts(turns: list[TurnLog]) -> None:
             missing.append("hallucination")
         if not role_reversal_ok:
             missing.append("role_reversal")
-        raise AssertionError(
-            "internal_thoughts missing expected flags: " + ", ".join(missing)
-        )
+        raise AssertionError("internal_thoughts missing expected flags: " + ", ".join(missing))
 
 
 def run_scenario(path: str) -> str:
@@ -97,7 +95,9 @@ def run_scenario(path: str) -> str:
 
     _assert_internal_thoughts(logger.turns)
 
-    run_path = f"runs/interview_log_{Path(path).stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    run_path = (
+        f"runs/interview_log_{Path(path).stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    )
     logger.set_final_feedback(state.get("final_feedback") or state.get("final_feedback_text"))
     logger.save(run_path)
     return run_path

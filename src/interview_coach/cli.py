@@ -9,7 +9,6 @@ from src.interview_coach.graph import build_graph
 from src.interview_coach.logger import InterviewLogger
 from src.interview_coach.models import GradeTarget, InterviewIntake, TurnLog
 
-
 STOP_COMMANDS = {"stop", "стоп", "стоп интервью"}
 
 

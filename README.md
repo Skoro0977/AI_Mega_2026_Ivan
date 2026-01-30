@@ -17,6 +17,11 @@ uv run python -m interview_coach.cli
 uv run python -m interview_coach.scenarios --scenario examples/scenarios/sample.json
 ```
 
+## Run Tests
+```bash
+uv run pytest
+```
+
 ## Output logs
 ```bash
 ls runs/
