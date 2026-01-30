@@ -115,6 +115,28 @@ uv run python -m src.interview_coach.cli --max-turns 12
 uv run python -m src.interview_coach.scenarios --scenario examples/scenarios/sample.json
 ```
 
+## Docker (быстрый запуск)
+Сборка:
+```bash
+docker build -t interview-coach .
+```
+
+Запуск CLI:
+```bash
+docker run --rm -it \\
+  -e OPENAI_API_KEY=sk-... \\
+  -v \"$PWD/runs:/app/runs\" \\
+  interview-coach --max-turns 12
+```
+
+Запуск сценария:
+```bash
+docker run --rm \\
+  -e OPENAI_API_KEY=sk-... \\
+  -v \"$PWD/runs:/app/runs\" \\
+  interview-coach -m src.interview_coach.scenarios --scenario examples/scenarios/sample.json
+```
+
 ## Качество и тесты
 ```bash
 uv run ruff format
