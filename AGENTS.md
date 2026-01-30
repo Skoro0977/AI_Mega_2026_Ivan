@@ -11,6 +11,7 @@
   - `graph.py` — LangGraph граф
   - `models.py` — Pydantic модели
   - `logger.py` — интервью-логгер
+  - `cli.py` — CLI runner
   - `prompts.py` — загрузка промптов из `prompts/`
   - `nodes/` — узлы графа
     - `difficulty.py`
