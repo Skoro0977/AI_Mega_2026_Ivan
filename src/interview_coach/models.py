@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -50,15 +49,15 @@ class TurnLog(BaseModel):
     agent_visible_message: str
     user_message: str
     internal_thoughts: str
-    topic: Optional[str] = None
-    difficulty_before: Optional[int] = None
-    difficulty_after: Optional[int] = None
-    flags: Optional[ObserverFlags] = None
-    skills_delta: Optional[dict[str, float]] = None
+    topic: str | None = None
+    difficulty_before: int | None = None
+    difficulty_after: int | None = None
+    flags: ObserverFlags | None = None
+    skills_delta: dict[str, float] | None = None
 
     @field_validator("difficulty_before", "difficulty_after")
     @classmethod
-    def validate_difficulty(cls, value: Optional[int]) -> Optional[int]:
+    def validate_difficulty(cls, value: int | None) -> int | None:
         if value is None:
             return value
         if not 1 <= value <= 5:
@@ -107,8 +106,8 @@ class ObserverReport(BaseModel):
     flags: ObserverFlags
     recommended_next_action: NextAction
     recommended_question_style: str
-    fact_check_notes: Optional[str] = None
-    skills_delta: Optional[dict[str, float]] = None
+    fact_check_notes: str | None = None
+    skills_delta: dict[str, float] | None = None
 
 
 class Decision(BaseModel):
@@ -131,7 +130,7 @@ class SoftSkillsFeedback(BaseModel):
 
 class Roadmap(BaseModel):
     next_steps: list[str] = Field(default_factory=list)
-    links: Optional[list[str]] = None
+    links: list[str] | None = None
 
 
 class FinalFeedback(BaseModel):
