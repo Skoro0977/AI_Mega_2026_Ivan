@@ -33,7 +33,7 @@ def test_logger_format(tmp_path):
         skills_delta={"sql": 0.5},
     )
     logger.append_turn(turn)
-    logger.set_final_feedback({"status": "done"})
+    logger.set_final_feedback("Summary text.")
 
     output_path = tmp_path / "interview_log.json"
     logger.save(str(output_path))
@@ -46,4 +46,10 @@ def test_logger_format(tmp_path):
     assert payload["turns"][0]["user_message"] == "Answer 1"
     assert "[Observer]:" in payload["turns"][0]["internal_thoughts"]
     assert "[Interviewer]:" in payload["turns"][0]["internal_thoughts"]
-    assert payload["final_feedback"] == {"status": "done"}
+    assert payload["final_feedback"] == "Summary text."
+    assert set(payload["turns"][0].keys()) == {
+        "turn_id",
+        "agent_visible_message",
+        "user_message",
+        "internal_thoughts",
+    }

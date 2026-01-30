@@ -190,7 +190,7 @@ def run_cli() -> None:
         final_feedback = state.get("final_feedback")
         final_feedback_text = state.get("final_feedback_text")
         if final_feedback is not None:
-            logger.set_final_feedback(final_feedback)
+            logger.set_final_feedback(final_feedback_text or final_feedback)
             logger.save(run_path)
             if final_feedback_text:
                 print("\nФинальный отчёт:\n" + final_feedback_text)

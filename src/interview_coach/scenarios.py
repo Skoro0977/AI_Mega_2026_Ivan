@@ -98,7 +98,7 @@ def run_scenario(path: str) -> str:
     run_path = (
         f"runs/interview_log_{Path(path).stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     )
-    logger.set_final_feedback(state.get("final_feedback") or state.get("final_feedback_text"))
+    logger.set_final_feedback(state.get("final_feedback_text") or state.get("final_feedback"))
     logger.save(run_path)
     return run_path
 
