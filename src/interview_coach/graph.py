@@ -52,6 +52,7 @@ class InterviewState(TypedDict, total=False):
     pending_difficulty_reason: str | None
     last_observer_report: ObserverReport | None
     skill_matrix: SkillMatrix | dict[str, float] | None
+    skill_snapshot: Any
     topics_covered: list[str]
     asked_questions: list[str]
     planned_topics: list[str]

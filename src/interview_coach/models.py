@@ -140,7 +140,8 @@ class SkillEvidence(BaseModel):
 class SkillTopicState(BaseModel):
     """Aggregated state for a given skill topic with evidence and gaps."""
 
-    level_estimate: int
+    level_estimate: int = 0
+    score: float = Field(0.0, ge=0.0, le=5.0)
     confirmed: list[str] = Field(default_factory=list)
     gaps: list[str] = Field(default_factory=list)
     evidence: list[SkillEvidence] = Field(default_factory=list)
@@ -148,8 +149,8 @@ class SkillTopicState(BaseModel):
     @field_validator("level_estimate")
     @classmethod
     def validate_level(cls, value: int) -> int:
-        if not 1 <= value <= 5:
-            raise ValueError("level_estimate must be within 1..5")
+        if not 0 <= value <= 5:
+            raise ValueError("level_estimate must be within 0..5")
         return value
 
 
@@ -222,11 +223,21 @@ class ObserverRoutingDecision(BaseModel):
         return unique
 
 
+class SkillDeltaEntry(BaseModel):
+    """Single skill delta with evidence reference."""
+
+    skill: str
+    delta: float
+    evidence_turn_id: int | None = None
+    note: str | None = None
+
+
 class ObserverOutput(BaseModel):
     """Combined observer response with routing decision and report."""
 
     decision: ObserverRoutingDecision
     report: ObserverReport
+    skills_delta: list[SkillDeltaEntry] = Field(default_factory=list)
 
 
 class Decision(BaseModel):

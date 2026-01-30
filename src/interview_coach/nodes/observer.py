@@ -10,7 +10,16 @@ from typing import Any, TypedDict
 from pydantic import BaseModel
 
 from src.interview_coach.agents import build_observer_messages, get_observer_agent
-from src.interview_coach.models import ExpertRole, ObserverOutput, ObserverReport, SkillMatrix, TurnLog
+from src.interview_coach.models import (
+    ExpertRole,
+    ObserverOutput,
+    ObserverReport,
+    SkillDeltaEntry,
+    SkillEvidence,
+    SkillMatrix,
+    SkillTopicState,
+    TurnLog,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -60,6 +69,7 @@ class ObserverUpdate(TypedDict, total=False):
     pending_difficulty_reason: str | None
     current_topic_index: int
     pending_expert_nodes: list[ExpertRole]
+    skill_matrix: SkillMatrix | dict[str, float] | None
 
 
 def run_observer(state: InterviewState) -> ObserverUpdate:
@@ -111,6 +121,11 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
     update["last_observer_report"] = report
     detected_topic = report.detected_topic or current_topic
     update["topics_covered"] = _update_topics_covered(state.get("topics_covered"), detected_topic)
+    update["skill_matrix"] = _apply_skills_delta(
+        state.get("skill_matrix"),
+        output.skills_delta,
+        _current_turn_id(state, update),
+    )
 
     return update
 
@@ -190,3 +205,67 @@ def _topic_at(planned_topics: list[str], index: int) -> str | None:
         return None
     topic = planned_topics[index].strip()
     return topic or None
+
+
+def _current_turn_id(state: InterviewState, update: ObserverUpdate) -> int | None:
+    turn_log = update.get("turn_log")
+    if isinstance(turn_log, TurnLog):
+        return turn_log.turn_id
+    turns = state.get("turns") or []
+    if turns:
+        last = turns[-1]
+        if isinstance(last, TurnLog):
+            return last.turn_id
+    return None
+
+
+def _apply_skills_delta(
+    skill_matrix: SkillMatrix | dict[str, float] | None,
+    deltas: list[SkillDeltaEntry],
+    default_turn_id: int | None,
+) -> SkillMatrix | dict[str, float] | None:
+    if not deltas:
+        return skill_matrix
+
+    matrix = _ensure_skill_matrix(skill_matrix)
+    for entry in deltas:
+        key = entry.skill.strip()
+        if not key:
+            continue
+        topic_state = matrix.topics.get(key)
+        if topic_state is None:
+            topic_state = SkillTopicState()
+            matrix.topics[key] = topic_state
+        updated_score = max(0.0, min(5.0, topic_state.score + float(entry.delta)))
+        topic_state.score = updated_score
+        topic_state.level_estimate = int(round(updated_score))
+        evidence_turn_id = entry.evidence_turn_id or default_turn_id
+        if evidence_turn_id is not None:
+            topic_state.evidence.append(
+                SkillEvidence(
+                    topic=key,
+                    claim=entry.note or "",
+                    is_correct=1.0 if entry.delta >= 0 else 0.0,
+                    notes=entry.note or "",
+                    turn_id=evidence_turn_id,
+                )
+            )
+    return matrix
+
+
+def _ensure_skill_matrix(skill_matrix: SkillMatrix | dict[str, float] | None) -> SkillMatrix:
+    if isinstance(skill_matrix, SkillMatrix):
+        return skill_matrix
+    matrix = SkillMatrix()
+    if isinstance(skill_matrix, dict):
+        for key, raw in skill_matrix.items():
+            try:
+                score = float(raw)
+            except (TypeError, ValueError):
+                score = 0.0
+            score = max(0.0, min(5.0, score))
+            matrix.topics[str(key)] = SkillTopicState(
+                score=score,
+                level_estimate=int(round(score)),
+            )
+    return matrix

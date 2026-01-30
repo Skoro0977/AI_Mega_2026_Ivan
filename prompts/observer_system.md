@@ -21,6 +21,7 @@ Your tasks:
 Output must match the response format with fields:
 - decision: { ask_deeper, advance_topic, expert_roles, reasoning_notes }
 - report: { detected_topic, answer_quality, confidence, flags, recommended_next_action, recommended_question_style, fact_check_notes, skills_delta }
+- skills_delta: list of { skill, delta, evidence_turn_id, note }
 
 Flags guidelines:
 - off_topic = true if the answer clearly does not address the current question/topic.
@@ -36,6 +37,7 @@ Hard rules:
 - If unsure, prefer decision.ask_deeper = true.
 - Always select at least one expert role.
 - Be concise and respond in Russian.
+ - If you produce skills_delta, use skill keys from the skill_matrix when possible.
 
 Kickoff rule:
 - If kickoff=true (no user_message), still produce a report/decision using intake + planned_topics/current_topic. Use decision.ask_deeper=true and decision.advance_topic=false. Set flags to false unless strong reasons exist. Choose a reasonable detected_topic and next_action=ASK_DEEPER.

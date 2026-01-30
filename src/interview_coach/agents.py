@@ -86,6 +86,7 @@ def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
         "kickoff": not bool((state.get("last_user_message") or "").strip()),
         "recent_turns": _compact_turns(state.get("turns")),
         "asked_questions": _tail(state.get("asked_questions"), limit=10),
+        "skill_keys": _skill_keys(state.get("skill_matrix")),
     }
     context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)
     context_text = json.dumps(context, ensure_ascii=False, indent=2)
@@ -103,11 +104,22 @@ def _topic_from_plan(state: Mapping[str, Any]) -> str | None:
     return topic or None
 
 
+def _skill_keys(skill_matrix: Any) -> list[str]:
+    if isinstance(skill_matrix, dict):
+        return [str(key) for key in skill_matrix.keys()]
+    if hasattr(skill_matrix, "topics"):
+        topics = getattr(skill_matrix, "topics", None)
+        if isinstance(topics, dict):
+            return [str(key) for key in topics.keys()]
+    return []
+
+
 def build_report_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
     """Build the message list for the report agent invocation."""
     payload = {
         "intake": _serialize(state.get("intake")),
         "skill_matrix": _serialize(state.get("skill_matrix")),
+        "skill_snapshot": _serialize(state.get("skill_snapshot")),
         "turns": _serialize(state.get("turns")),
         "observer_reports": _serialize(state.get("observer_reports")),
         "summary_notes": state.get("summary_notes"),

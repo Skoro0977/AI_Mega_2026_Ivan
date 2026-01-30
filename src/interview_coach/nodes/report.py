@@ -12,7 +12,7 @@ from typing import Any, TypedDict
 from pydantic import BaseModel
 
 from src.interview_coach.agents import build_report_messages, get_report_agent
-from src.interview_coach.models import ExpertRole, FinalFeedback, GradeTarget
+from src.interview_coach.models import ExpertRole, FinalFeedback, GradeTarget, SkillMatrix, SkillTopicState
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +28,7 @@ class InterviewState(TypedDict, total=False):
     report_max_retries: int
     intake: Any
     skill_matrix: Any
+    skill_snapshot: Any
     turns: list[Any]
     observer_reports: list[Any]
     summary_notes: str
@@ -48,7 +49,10 @@ class ReportUpdate(TypedDict, total=False):
 def run_report(state: InterviewState) -> ReportUpdate:
     """Invoke the report agent and return final feedback."""
 
-    messages = build_report_messages(state)
+    snapshot = _build_skill_snapshot(state.get("skill_matrix"))
+    local_state = dict(state)
+    local_state["skill_snapshot"] = snapshot
+    messages = build_report_messages(local_state)
     model, temperature, max_retries = _resolve_report_settings(state)
     agent = get_report_agent(model, temperature, max_retries)
 
@@ -180,6 +184,58 @@ def _collect_feedback_metrics(feedback: FinalFeedback, state: Mapping[str, Any])
         },
         "topics_covered": state.get("topics_covered") or [],
     }
+
+
+def _build_skill_snapshot(skill_matrix: Any) -> dict[str, Any]:
+    matrix = _coerce_skill_matrix(skill_matrix)
+    topics = matrix.topics
+    if not topics:
+        return {"confirmed": [], "gaps": [], "evidence": {}}
+
+    confirmed_threshold = 3.5
+    gap_threshold = 1.5
+
+    scored = []
+    for key, topic in topics.items():
+        scored.append((key, topic.score))
+
+    confirmed = sorted([item for item in scored if item[1] >= confirmed_threshold], key=lambda x: -x[1])[:5]
+    gaps = sorted([item for item in scored if item[1] <= gap_threshold], key=lambda x: x[1])[:5]
+
+    evidence: dict[str, dict[str, Any]] = {}
+    for key, topic in topics.items():
+        last = topic.evidence[-1] if topic.evidence else None
+        if last:
+            evidence[key] = {
+                "turn_id": last.turn_id,
+                "note": last.notes,
+                "is_correct": last.is_correct,
+            }
+
+    return {
+        "confirmed": [{"skill": key, "score": score} for key, score in confirmed],
+        "gaps": [{"skill": key, "score": score} for key, score in gaps],
+        "evidence": evidence,
+    }
+
+
+def _coerce_skill_matrix(value: Any) -> SkillMatrix:
+    if isinstance(value, SkillMatrix):
+        return value
+    matrix = SkillMatrix()
+    if isinstance(value, dict):
+        for key, raw in value.items():
+            try:
+                score = float(raw)
+            except (TypeError, ValueError):
+                score = 0.0
+            score = max(0.0, min(5.0, score))
+            matrix.topics[str(key)] = SkillTopicState(
+                score=score,
+                level_estimate=int(round(score)),
+                evidence=[],
+            )
+    return matrix
 
 
 def _extract_message_ids(text: str) -> list[int]:
