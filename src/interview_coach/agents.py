@@ -13,7 +13,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from src.interview_coach.models import FinalFeedback, ObserverReport, ObserverRoutingDecision, PlannedTopics
+from src.interview_coach.models import FinalFeedback, ObserverOutput, PlannedTopics
 from src.interview_coach.prompts import load_prompt
 from src.interview_coach.settings import get_settings
 
@@ -68,12 +68,11 @@ def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
     history = state.get("messages") or state.get("chat_history")
     if history:
         messages.extend(_coerce_messages(history))
-        return messages
-
-    if state.get("last_interviewer_message"):
-        messages.append(AIMessage(content=str(state["last_interviewer_message"])))
-    if state.get("last_user_message"):
-        messages.append(HumanMessage(content=str(state["last_user_message"])))
+    else:
+        if state.get("last_interviewer_message"):
+            messages.append(AIMessage(content=str(state["last_interviewer_message"])))
+        if state.get("last_user_message"):
+            messages.append(HumanMessage(content=str(state["last_user_message"])))
 
     context = {
         "intake": _compact_intake(state.get("intake")),
@@ -81,6 +80,9 @@ def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
         "difficulty": state.get("difficulty"),
         "planned_topics": state.get("planned_topics") or [],
         "current_topic_index": state.get("current_topic_index") or 0,
+        "current_topic": _topic_from_plan(state),
+        "agent_visible_message": state.get("last_interviewer_message") or "",
+        "user_message": state.get("last_user_message") or "",
         "recent_turns": _compact_turns(state.get("turns")),
     }
     context = _truncate_strings(context, _MAX_CONTEXT_STRING_LEN)
@@ -88,6 +90,15 @@ def build_observer_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
     messages.append(HumanMessage(content=f"Context (JSON):\n{context_text}"))
 
     return messages
+
+
+def _topic_from_plan(state: Mapping[str, Any]) -> str | None:
+    planned_topics = state.get("planned_topics") or []
+    current_index = int(state.get("current_topic_index") or 0)
+    if current_index < 0 or current_index >= len(planned_topics):
+        return None
+    topic = str(planned_topics[current_index]).strip()
+    return topic or None
 
 
 def build_report_messages(state: Mapping[str, Any]) -> list[BaseMessage]:
@@ -137,7 +148,7 @@ def get_observer_agent(model: str, temperature: float, max_retries: int) -> Any:
     if key not in _OBSERVER_CACHE:
         _OBSERVER_CACHE[key] = create_agent(
             build_model(*key),
-            response_format=ObserverRoutingDecision,
+            response_format=ObserverOutput,
         )
     return _OBSERVER_CACHE[key]
 

@@ -10,15 +10,7 @@ from typing import Any, TypedDict
 from pydantic import BaseModel
 
 from src.interview_coach.agents import build_observer_messages, get_observer_agent
-from src.interview_coach.models import (
-    ExpertRole,
-    NextAction,
-    ObserverFlags,
-    ObserverReport,
-    ObserverRoutingDecision,
-    SkillMatrix,
-    TurnLog,
-)
+from src.interview_coach.models import ExpertRole, ObserverOutput, ObserverReport, SkillMatrix, TurnLog
 
 LOGGER = logging.getLogger(__name__)
 
@@ -95,7 +87,9 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
     LOGGER.info("Observer: start (model=%s)", model)
     result = agent.invoke({"messages": messages})
     LOGGER.info("Observer: done in %.2fs", time.monotonic() - start)
-    decision = _extract_decision(result)
+    output = _extract_output(result)
+    decision = output.decision
+    report = output.report
 
     planned_topics = state.get("planned_topics") or []
     current_index = int(state.get("current_topic_index") or 0)
@@ -108,14 +102,9 @@ def run_observer(state: InterviewState) -> ObserverUpdate:
         update["current_topic_index"] = next_index
 
     update["pending_expert_nodes"] = decision.expert_roles
-
-    report = _build_report(
-        current_topic=current_topic,
-        ask_deeper=decision.ask_deeper,
-        advance_topic=decision.advance_topic,
-    )
     update["last_observer_report"] = report
-    update["topics_covered"] = _update_topics_covered(state.get("topics_covered"), current_topic)
+    detected_topic = report.detected_topic or current_topic
+    update["topics_covered"] = _update_topics_covered(state.get("topics_covered"), detected_topic)
 
     return update
 
@@ -170,23 +159,23 @@ def _next_turn_id(turns: list[TurnLog]) -> int:
     return last.turn_id + 1
 
 
-def _extract_decision(result: Any) -> ObserverRoutingDecision:
-    if isinstance(result, ObserverRoutingDecision):
+def _extract_output(result: Any) -> ObserverOutput:
+    if isinstance(result, ObserverOutput):
         return result
     if isinstance(result, Mapping) and "structured_response" in result:
-        return _coerce_decision(result["structured_response"])
+        return _coerce_output(result["structured_response"])
     if hasattr(result, "structured_response"):
-        return _coerce_decision(result.structured_response)
-    return _coerce_decision(result)
+        return _coerce_output(result.structured_response)
+    return _coerce_output(result)
 
 
-def _coerce_decision(value: Any) -> ObserverRoutingDecision:
-    if isinstance(value, ObserverRoutingDecision):
+def _coerce_output(value: Any) -> ObserverOutput:
+    if isinstance(value, ObserverOutput):
         return value
     if isinstance(value, BaseModel):
-        return ObserverRoutingDecision.model_validate(value.model_dump())
+        return ObserverOutput.model_validate(value.model_dump())
     if isinstance(value, Mapping):
-        return ObserverRoutingDecision.model_validate(dict(value))
+        return ObserverOutput.model_validate(dict(value))
     raise TypeError("Observer agent returned an unsupported response type.")
 
 
@@ -195,37 +184,3 @@ def _topic_at(planned_topics: list[str], index: int) -> str | None:
         return None
     topic = planned_topics[index].strip()
     return topic or None
-
-
-def _build_report(
-    current_topic: str | None,
-    ask_deeper: bool,
-    advance_topic: bool,
-) -> ObserverReport:
-    action = NextAction.CHANGE_TOPIC if advance_topic else NextAction.ASK_DEEPER
-
-    flags = ObserverFlags(
-        off_topic=False,
-        ask_deeper=ask_deeper,
-    )
-
-    if advance_topic:
-        answer_quality = 3.8
-        confidence = 0.7
-    elif ask_deeper:
-        answer_quality = 2.6
-        confidence = 0.6
-    else:
-        answer_quality = 3.2
-        confidence = 0.65
-
-    return ObserverReport(
-        detected_topic=current_topic or "",
-        answer_quality=answer_quality,
-        confidence=confidence,
-        flags=flags,
-        recommended_next_action=action,
-        recommended_question_style="clarify" if ask_deeper else "advance",
-        fact_check_notes=None,
-        skills_delta=None,
-    )

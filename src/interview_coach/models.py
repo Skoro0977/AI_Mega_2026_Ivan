@@ -221,6 +221,13 @@ class ObserverRoutingDecision(BaseModel):
         return unique
 
 
+class ObserverOutput(BaseModel):
+    """Combined observer response with routing decision and report."""
+
+    decision: ObserverRoutingDecision
+    report: ObserverReport
+
+
 class Decision(BaseModel):
     grade: GradeTarget
     recommendation: str

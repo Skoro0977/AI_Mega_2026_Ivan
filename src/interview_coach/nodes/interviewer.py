@@ -107,11 +107,21 @@ def _select_strategy(report: ObserverReport | None, last_user_message: str | Non
             return "answer_candidate_question"
         return "ask_standard"
 
+    action = report.recommended_next_action
+    if action == NextAction.HANDLE_ROLE_REVERSAL:
+        return "return_roles"
+    if action == NextAction.HANDLE_HALLUCINATION:
+        return "challenge_hallucination"
+    if action == NextAction.HANDLE_OFFTOPIC:
+        return "return_to_topic"
     flags = report.flags or ObserverFlags()
+    if flags.role_reversal:
+        return "return_roles"
+    if flags.hallucination:
+        return "challenge_hallucination"
     if flags.off_topic:
         return "return_to_topic"
 
-    action = report.recommended_next_action
     if action == NextAction.ASK_DEEPER:
         return "deepen"
     if action == NextAction.CHANGE_TOPIC:
