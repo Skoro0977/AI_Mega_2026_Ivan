@@ -36,9 +36,11 @@ class InterviewState(TypedDict, total=False):
     pending_interviewer_message: str | None
     pending_internal_thoughts: str | None
     pending_report: ObserverReport | None
-    pending_difficulty: int | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
     turns: list[TurnLog]
-    difficulty: int
+    difficulty: str
+    difficulty_reason: str
     topics_covered: list[str]
     asked_questions: list[str]
     planned_topics: list[str]
@@ -56,7 +58,8 @@ class InterviewerUpdate(TypedDict, total=False):
     pending_interviewer_message: str | None
     pending_internal_thoughts: str | None
     pending_report: ObserverReport | None
-    pending_difficulty: int | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
     asked_questions: list[str]
     topics_covered: list[str]
 
@@ -87,10 +90,12 @@ def run_interviewer(state: InterviewState) -> InterviewerUpdate:
             strategy,
             state.get("expert_evaluations"),
             state.get("difficulty"),
+            state.get("difficulty_reason"),
             agent_visible_message,
         ),
         "pending_report": report,
         "pending_difficulty": state.get("difficulty"),
+        "pending_difficulty_reason": state.get("difficulty_reason"),
         "asked_questions": asked_questions,
         "topics_covered": updated_topics,
     }
@@ -237,7 +242,8 @@ def _build_internal_thoughts(
     report: ObserverReport | None,
     strategy: str,
     expert_evaluations: dict[ExpertRole, str] | None,
-    difficulty: int | None,
+    difficulty: str | None,
+    difficulty_reason: str | None,
     question: str,
 ) -> str:
     parts: list[str] = []
@@ -250,8 +256,9 @@ def _build_internal_thoughts(
             f"contradiction={flags.contradiction}, role_reversal={flags.role_reversal}, "
             f"ask_deeper={flags.ask_deeper}"
         )
+        reason = f", difficulty_reason={difficulty_reason}" if difficulty_reason else ""
         observer_summary = (
-            f"topic={report.detected_topic}, difficulty={difficulty}, "
+            f"topic={report.detected_topic}, difficulty={difficulty}{reason}, "
             f"next_action={report.recommended_next_action}, {flags_summary}"
         )
         parts.append(f"[Observer]: {observer_summary}.")

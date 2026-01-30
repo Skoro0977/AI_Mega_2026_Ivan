@@ -180,7 +180,8 @@ def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
 
     state: dict[str, Any] = {
         "intake": intake,
-        "difficulty": 3,
+        "difficulty": "MEDIUM",
+        "difficulty_reason": "",
         "topics_covered": [],
         "asked_questions": [],
         "turns": [],
@@ -191,6 +192,7 @@ def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
         "pending_internal_thoughts": None,
         "pending_report": None,
         "pending_difficulty": None,
+        "pending_difficulty_reason": None,
     }
 
     graph = build_graph()

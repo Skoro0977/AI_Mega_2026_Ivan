@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 class InterviewState(TypedDict, total=False):
     """State payload passed through the interview graph."""
 
-    difficulty: int
+    difficulty: str
     last_observer_report: ObserverReport | None
     planned_topics: list[str]
     current_topic_index: int
@@ -24,7 +24,8 @@ class InterviewState(TypedDict, total=False):
 class DifficultyUpdate(TypedDict, total=False):
     """Partial state update emitted by the difficulty node."""
 
-    difficulty: int
+    difficulty: str
+    difficulty_reason: str
 
 
 def run_difficulty(state: InterviewState) -> DifficultyUpdate:
@@ -41,20 +42,29 @@ def run_difficulty(state: InterviewState) -> DifficultyUpdate:
         LOGGER.info("Difficulty: skip (flags=%s)", flags.model_dump())
         return {}
 
-    difficulty = state.get("difficulty")
-    if difficulty is None:
+    difficulty = (state.get("difficulty") or "").strip().upper()
+    if not difficulty:
         LOGGER.info("Difficulty: skip (no difficulty)")
         return {}
 
+    order = ("EASY", "MEDIUM", "HARD")
+    if difficulty not in order:
+        LOGGER.info("Difficulty: skip (unknown=%s)", difficulty)
+        return {}
+
+    idx = order.index(difficulty)
     updated = difficulty
-    if report.answer_quality >= 4:
-        updated = min(5, difficulty + 1)
-    elif report.answer_quality <= 2:
-        updated = max(1, difficulty - 1)
+    reason = ""
+    if report.answer_quality >= 4.0:
+        updated = order[min(len(order) - 1, idx + 1)]
+        reason = f"increase (answer_quality={report.answer_quality:.2f})"
+    elif report.answer_quality <= 2.0:
+        updated = order[max(0, idx - 1)]
+        reason = f"decrease (answer_quality={report.answer_quality:.2f})"
 
     if updated == difficulty:
         LOGGER.info("Difficulty: unchanged (%s)", difficulty)
-        return {}
+        return {"difficulty_reason": ""}
 
     LOGGER.info("Difficulty: updated %s -> %s", difficulty, updated)
-    return {"difficulty": updated}
+    return {"difficulty": updated, "difficulty_reason": reason}

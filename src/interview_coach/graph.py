@@ -7,6 +7,7 @@ from typing import Any, TypedDict
 from langgraph.graph import END, StateGraph
 
 from src.interview_coach.models import ExpertRole, FinalFeedback, NextAction, ObserverReport, SkillMatrix, TurnLog
+from src.interview_coach.nodes.difficulty import run_difficulty
 from src.interview_coach.nodes.experts import create_expert_node
 from src.interview_coach.nodes.interviewer import run_interviewer
 from src.interview_coach.nodes.observer import run_observer
@@ -38,7 +39,8 @@ class InterviewState(TypedDict, total=False):
     stop_requested: bool
     intake: Any
     topic: str
-    difficulty: int
+    difficulty: str
+    difficulty_reason: str
     messages: list[Any]
     chat_history: list[Any]
     last_user_message: str
@@ -46,7 +48,8 @@ class InterviewState(TypedDict, total=False):
     pending_interviewer_message: str | None
     pending_internal_thoughts: str | None
     pending_report: ObserverReport | None
-    pending_difficulty: int | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
     last_observer_report: ObserverReport | None
     skill_matrix: SkillMatrix | dict[str, float] | None
     topics_covered: list[str]
@@ -68,15 +71,15 @@ def _route_after_observer(state: InterviewState) -> str:
         return "final_report"
     if state.get("pending_expert_nodes"):
         return "experts_router"
-    return "interviewer"
+    return "difficulty"
 
 
 def _route_experts(state: InterviewState) -> str:
     pending = state.get("pending_expert_nodes") or []
     if not pending:
-        return "interviewer"
+        return "difficulty"
     role = pending[0]
-    return _EXPERT_NODES.get(role, "interviewer")
+    return _EXPERT_NODES.get(role, "difficulty")
 
 
 def _should_finalize(state: InterviewState) -> bool:
@@ -116,6 +119,7 @@ def build_graph() -> Any:
     graph_builder.add_node("intake", _run_intake)
     graph_builder.add_node("planner", run_planner)
     graph_builder.add_node("observer", run_observer)
+    graph_builder.add_node("difficulty", run_difficulty)
     graph_builder.add_node("experts_router", _run_intake)
     graph_builder.add_node("expert_tech_lead", create_expert_node(ExpertRole.TECH_LEAD))
     graph_builder.add_node("expert_team_lead", create_expert_node(ExpertRole.TEAM_LEAD))
@@ -137,7 +141,7 @@ def build_graph() -> Any:
         {
             "final_report": "final_report",
             "experts_router": "experts_router",
-            "interviewer": "interviewer",
+            "difficulty": "difficulty",
         },
     )
 
@@ -145,7 +149,7 @@ def build_graph() -> Any:
         "experts_router",
         _route_experts,
         {
-            "interviewer": "interviewer",
+            "difficulty": "difficulty",
             "expert_tech_lead": "expert_tech_lead",
             "expert_team_lead": "expert_team_lead",
             "expert_qa": "expert_qa",
@@ -157,6 +161,7 @@ def build_graph() -> Any:
     for node in _EXPERT_NODES.values():
         graph_builder.add_edge(node, "experts_router")
 
+    graph_builder.add_edge("difficulty", "interviewer")
     graph_builder.add_edge("interviewer", "wait_for_user_input")
     graph_builder.add_edge("wait_for_user_input", END)
     graph_builder.add_edge("final_report", END)

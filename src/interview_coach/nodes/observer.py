@@ -30,13 +30,14 @@ class InterviewState(TypedDict, total=False):
     last_user_message: str
     intake: Any
     topic: str
-    difficulty: int
+    difficulty: str
     turns: list[Any]
     last_observer_report: ObserverReport | None
     pending_interviewer_message: str | None
     pending_internal_thoughts: str | None
     pending_report: ObserverReport | None
-    pending_difficulty: int | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
     skill_matrix: SkillMatrix | dict[str, float] | None
     topics_covered: list[str] | None
     planned_topics: list[str]
@@ -55,7 +56,8 @@ class ObserverUpdate(TypedDict, total=False):
     pending_interviewer_message: str | None
     pending_internal_thoughts: str | None
     pending_report: ObserverReport | None
-    pending_difficulty: int | None
+    pending_difficulty: str | None
+    pending_difficulty_reason: str | None
     current_topic_index: int
     pending_expert_nodes: list[ExpertRole]
 

@@ -111,19 +111,20 @@ class TurnLog(BaseModel):
     user_message: str
     internal_thoughts: str
     topic: str | None = None
-    difficulty_before: int | None = None
-    difficulty_after: int | None = None
+    difficulty_before: str | None = None
+    difficulty_after: str | None = None
     flags: ObserverFlags | None = None
     skills_delta: dict[str, float] | None = None
 
     @field_validator("difficulty_before", "difficulty_after")
     @classmethod
-    def validate_difficulty(cls, value: int | None) -> int | None:
+    def validate_difficulty(cls, value: str | None) -> str | None:
         if value is None:
             return value
-        if not 1 <= value <= 5:
-            raise ValueError("difficulty must be within 1..5")
-        return value
+        cleaned = str(value).strip().upper()
+        if cleaned not in {"EASY", "MEDIUM", "HARD"}:
+            raise ValueError("difficulty must be one of EASY, MEDIUM, HARD")
+        return cleaned
 
 
 class SkillEvidence(BaseModel):

@@ -64,7 +64,8 @@ def run_scenario(path: str) -> str:
 
     state: dict[str, Any] = {
         "intake": intake,
-        "difficulty": 3,
+        "difficulty": "MEDIUM",
+        "difficulty_reason": "",
         "topics_covered": [],
         "asked_questions": [],
         "turns": [],
