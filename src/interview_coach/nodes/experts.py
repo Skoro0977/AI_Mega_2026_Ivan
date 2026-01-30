@@ -24,6 +24,8 @@ _PROMPT_BY_ROLE: dict[ExpertRole, str] = {
     ExpertRole.TECH_LEAD: "expert_tech_lead_system.md",
     ExpertRole.TEAM_LEAD: "expert_team_lead_system.md",
     ExpertRole.QA: "expert_qa_system.md",
+    ExpertRole.DESIGNER: "expert_designer_system.md",
+    ExpertRole.ANALYST: "expert_analyst_system.md",
 }
 
 
@@ -40,12 +42,14 @@ class InterviewState(TypedDict, total=False):
     planned_topics: list[str]
     current_topic_index: int
     expert_evaluations: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
 
 
 class ExpertUpdate(TypedDict, total=False):
     """Partial state update emitted by the expert node."""
 
     expert_evaluations: dict[ExpertRole, str]
+    pending_expert_nodes: list[ExpertRole]
 
 
 def create_expert_node(role: ExpertRole) -> Callable[[InterviewState], ExpertUpdate]:
@@ -91,7 +95,11 @@ def create_expert_node(role: ExpertRole) -> Callable[[InterviewState], ExpertUpd
 
         updated = dict(state.get("expert_evaluations") or {})
         updated[role] = text
-        return {"expert_evaluations": updated}
+        remaining = [item for item in (state.get("pending_expert_nodes") or []) if item != role]
+        return {
+            "expert_evaluations": updated,
+            "pending_expert_nodes": remaining,
+        }
 
     return run_expert
 

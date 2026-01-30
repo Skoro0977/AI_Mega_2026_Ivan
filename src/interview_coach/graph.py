@@ -6,12 +6,12 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, StateGraph
 
-from src.interview_coach.models import ExpertRole, FinalFeedback, ObserverReport, SkillMatrix, TurnLog
-from src.interview_coach.nodes.difficulty import run_difficulty
+from src.interview_coach.models import ExpertRole, FinalFeedback, NextAction, ObserverReport, SkillMatrix, TurnLog
+from src.interview_coach.nodes.experts import create_expert_node
 from src.interview_coach.nodes.interviewer import run_interviewer
 from src.interview_coach.nodes.observer import run_observer
+from src.interview_coach.nodes.planner import run_planner
 from src.interview_coach.nodes.report import run_report
-from src.interview_coach.nodes.router import route
 
 
 class InterviewState(TypedDict, total=False):
@@ -26,6 +26,12 @@ class InterviewState(TypedDict, total=False):
     interviewer_model: str
     interviewer_temperature: float
     interviewer_max_retries: int
+    planner_model: str
+    planner_temperature: float
+    planner_max_retries: int
+    expert_model: str
+    expert_temperature: float
+    expert_max_retries: int
     report_model: str
     report_temperature: float
     report_max_retries: int
@@ -57,8 +63,49 @@ class InterviewState(TypedDict, total=False):
     turn_log: TurnLog
 
 
-def _route_node(_: InterviewState) -> dict[str, Any]:
+def _route_after_observer(state: InterviewState) -> str:
+    if _should_finalize(state):
+        return "final_report"
+    if state.get("pending_expert_nodes"):
+        return "experts_router"
+    return "interviewer"
+
+
+def _route_experts(state: InterviewState) -> str:
+    pending = state.get("pending_expert_nodes") or []
+    if not pending:
+        return "interviewer"
+    role = pending[0]
+    return _EXPERT_NODES.get(role, "interviewer")
+
+
+def _should_finalize(state: InterviewState) -> bool:
+    if state.get("stop_requested"):
+        return True
+    current_index = int(state.get("current_topic_index") or 0)
+    if current_index < 10:
+        return False
+    report = state.get("last_observer_report")
+    if report is None:
+        return False
+    return report.recommended_next_action in {NextAction.WRAP_UP, NextAction.CHANGE_TOPIC}
+
+
+def _run_intake(_: InterviewState) -> dict[str, Any]:
     return {}
+
+
+def _wait_for_user_input(_: InterviewState) -> dict[str, Any]:
+    return {}
+
+
+_EXPERT_NODES: dict[ExpertRole, str] = {
+    ExpertRole.TECH_LEAD: "expert_tech_lead",
+    ExpertRole.TEAM_LEAD: "expert_team_lead",
+    ExpertRole.QA: "expert_qa",
+    ExpertRole.DESIGNER: "expert_designer",
+    ExpertRole.ANALYST: "expert_analyst",
+}
 
 
 def build_graph() -> Any:
@@ -66,27 +113,52 @@ def build_graph() -> Any:
 
     graph_builder = StateGraph(state_schema=InterviewState)
 
-    graph_builder.add_node("router", _route_node)
+    graph_builder.add_node("intake", _run_intake)
+    graph_builder.add_node("planner", run_planner)
     graph_builder.add_node("observer", run_observer)
-    graph_builder.add_node("difficulty", run_difficulty)
+    graph_builder.add_node("experts_router", _run_intake)
+    graph_builder.add_node("expert_tech_lead", create_expert_node(ExpertRole.TECH_LEAD))
+    graph_builder.add_node("expert_team_lead", create_expert_node(ExpertRole.TEAM_LEAD))
+    graph_builder.add_node("expert_qa", create_expert_node(ExpertRole.QA))
+    graph_builder.add_node("expert_designer", create_expert_node(ExpertRole.DESIGNER))
+    graph_builder.add_node("expert_analyst", create_expert_node(ExpertRole.ANALYST))
     graph_builder.add_node("interviewer", run_interviewer)
+    graph_builder.add_node("wait_for_user_input", _wait_for_user_input)
     graph_builder.add_node("final_report", run_report)
 
-    graph_builder.set_entry_point("router")
+    graph_builder.set_entry_point("intake")
+
+    graph_builder.add_edge("intake", "planner")
+    graph_builder.add_edge("planner", "observer")
 
     graph_builder.add_conditional_edges(
-        "router",
-        route,
+        "observer",
+        _route_after_observer,
         {
             "final_report": "final_report",
-            "observer": "observer",
+            "experts_router": "experts_router",
             "interviewer": "interviewer",
         },
     )
 
-    graph_builder.add_edge("observer", "difficulty")
-    graph_builder.add_edge("difficulty", "interviewer")
-    graph_builder.add_edge("interviewer", END)
+    graph_builder.add_conditional_edges(
+        "experts_router",
+        _route_experts,
+        {
+            "interviewer": "interviewer",
+            "expert_tech_lead": "expert_tech_lead",
+            "expert_team_lead": "expert_team_lead",
+            "expert_qa": "expert_qa",
+            "expert_designer": "expert_designer",
+            "expert_analyst": "expert_analyst",
+        },
+    )
+
+    for node in _EXPERT_NODES.values():
+        graph_builder.add_edge(node, "experts_router")
+
+    graph_builder.add_edge("interviewer", "wait_for_user_input")
+    graph_builder.add_edge("wait_for_user_input", END)
     graph_builder.add_edge("final_report", END)
 
     return graph_builder.compile()
