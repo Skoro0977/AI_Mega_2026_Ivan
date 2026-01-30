@@ -82,7 +82,11 @@ def run_interviewer(state: InterviewState) -> InterviewerUpdate:
     return {
         "last_interviewer_message": agent_visible_message,
         "pending_interviewer_message": agent_visible_message,
-        "pending_internal_thoughts": _build_internal_thoughts(report, strategy),
+        "pending_internal_thoughts": _build_internal_thoughts(
+            report,
+            strategy,
+            state.get("expert_evaluations"),
+        ),
         "pending_report": report,
         "pending_difficulty": state.get("difficulty"),
         "asked_questions": asked_questions,
@@ -217,16 +221,42 @@ def _is_repeat_complaint(message: str) -> bool:
     return any(marker in text for marker in markers)
 
 
-def _build_internal_thoughts(report: ObserverReport | None, strategy: str) -> str:
+def _build_internal_thoughts(
+    report: ObserverReport | None,
+    strategy: str,
+    expert_evaluations: dict[ExpertRole, str] | None,
+) -> str:
+    parts: list[str] = []
     if report is None:
-        return f"[Observer]: no report. [Interviewer]: strategy={strategy}."
-    flags = report.flags
-    flags_summary = (
-        f"off_topic={flags.off_topic}, hallucination={flags.hallucination}, "
-        f"contradiction={flags.contradiction}, role_reversal={flags.role_reversal}, ask_deeper={flags.ask_deeper}"
-    )
-    observer_summary = f"topic={report.detected_topic}, next_action={report.recommended_next_action}, {flags_summary}"
-    return f"[Observer]: {observer_summary}. [Interviewer]: strategy={strategy}."
+        parts.append("[Observer]: no report.")
+    else:
+        flags = report.flags
+        flags_summary = (
+            f"off_topic={flags.off_topic}, hallucination={flags.hallucination}, "
+            f"contradiction={flags.contradiction}, role_reversal={flags.role_reversal}, "
+            f"ask_deeper={flags.ask_deeper}"
+        )
+        observer_summary = (
+            f"topic={report.detected_topic}, next_action={report.recommended_next_action}, {flags_summary}"
+        )
+        parts.append(f"[Observer]: {observer_summary}.")
+
+    parts.extend(_format_expert_thoughts(expert_evaluations))
+    parts.append(f"[Interviewer]: strategy={strategy}.")
+    return " ".join(parts)
+
+
+def _format_expert_thoughts(expert_evaluations: dict[ExpertRole, str] | None) -> list[str]:
+    if not expert_evaluations:
+        return []
+    entries: list[tuple[str, str]] = []
+    for role, text in expert_evaluations.items():
+        role_name = role.value if isinstance(role, ExpertRole) else str(role)
+        cleaned = str(text).strip()
+        if cleaned:
+            entries.append((role_name, cleaned))
+    entries.sort(key=lambda item: item[0])
+    return [f"[Expert:{role}]: {text}." for role, text in entries]
 
 
 def _update_asked_questions(asked: list[str] | None, message: str) -> list[str]:
