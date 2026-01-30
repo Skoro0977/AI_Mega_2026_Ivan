@@ -12,6 +12,7 @@
   - `models.py` — Pydantic модели
   - `logger.py` — интервью-логгер
   - `cli.py` — CLI runner
+  - `scenarios.py` — скриптовые прогоны сценариев
   - `prompts.py` — загрузка промптов из `prompts/`
   - `nodes/` — узлы графа
     - `difficulty.py`

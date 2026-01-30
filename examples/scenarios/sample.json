@@ -1,0 +1,14 @@
+{
+  "intake": {
+    "participant_name": "Анна",
+    "position": "Backend Engineer",
+    "grade_target": "middle",
+    "experience_summary": "5 лет на Python, строила REST и async сервисы"
+  },
+  "scripted_user_messages": [
+    "Я строила очереди на Kafka и RabbitMQ, у Kafka есть точно единоразовая доставка по умолчанию.",
+    "А можно я вас поспрашиваю? Какие технологии у вас в компании и как устроена команда?",
+    "Ладно, давайте вернемся к интервью. Вот пример: я оптимизировала N+1 запросы с prefetch.",
+    "стоп"
+  ]
+}
