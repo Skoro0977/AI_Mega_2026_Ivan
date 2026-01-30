@@ -123,6 +123,16 @@ source .venv/bin/activate
 uv sync
 ```
 
+## Environment
+Настройки читаются через `pydantic-settings` из переменных окружения и файла `.env` в корне проекта.
+
+Поддерживаемые параметры:
+```
+OPENAI_API_KEY=sk-...
+OPENAI_BASE_URL=https://api.your-gateway.example/v1
+```
+Также поддерживается алиас `OPENAI_API_BASE` для base URL.
+
 ## Run CLI
 ```bash
 uv run python -m interview_coach.cli

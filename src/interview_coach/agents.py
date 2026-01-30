@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from src.interview_coach.models import FinalFeedback, ObserverReport
 from src.interview_coach.prompts import load_prompt
+from src.interview_coach.settings import get_settings
 
 _ModelKey = tuple[str, float, int]
 
@@ -28,10 +29,17 @@ def build_model(model: str, temperature: float, max_retries: int) -> ChatOpenAI:
     """Create or reuse a ChatOpenAI model instance."""
     key = (model, temperature, max_retries)
     if key not in _MODEL_CACHE:
+        settings = get_settings()
+        client_kwargs: dict[str, Any] = {}
+        if settings.openai_api_key:
+            client_kwargs["openai_api_key"] = settings.openai_api_key
+        if settings.openai_base_url:
+            client_kwargs["base_url"] = settings.openai_base_url
         _MODEL_CACHE[key] = ChatOpenAI(
             model=model,
             temperature=temperature,
             max_retries=max_retries,
+            **client_kwargs,
         )
     return _MODEL_CACHE[key]
 
