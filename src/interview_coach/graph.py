@@ -76,6 +76,7 @@ def build_graph() -> Any:
         {
             "final_report": "final_report",
             "observer": "observer",
+            "interviewer": "interviewer",
         },
     )
 
