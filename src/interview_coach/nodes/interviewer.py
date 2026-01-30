@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from collections.abc import Mapping
 from difflib import SequenceMatcher
