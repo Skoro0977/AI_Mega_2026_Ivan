@@ -45,7 +45,7 @@ class InterviewState(TypedDict, total=False):
     asked_questions: list[str]
     planned_topics: list[str]
     current_topic_index: int
-    expert_evaluations: dict[ExpertRole, str]
+    expert_evaluations_current_turn: dict[ExpertRole, str]
     pending_expert_nodes: list[ExpertRole]
     intake: Any
     skill_matrix: Any
@@ -88,7 +88,7 @@ def run_interviewer(state: InterviewState) -> InterviewerUpdate:
         "pending_internal_thoughts": _build_internal_thoughts(
             report,
             strategy,
-            state.get("expert_evaluations"),
+            state.get("expert_evaluations_current_turn"),
             state.get("difficulty"),
             state.get("difficulty_reason"),
             state.get("turns"),
@@ -148,7 +148,7 @@ def _build_payload(
     current_topic_index = int(state.get("current_topic_index") or 0)
     current_topic = _topic_at(planned_topics, current_topic_index)
     next_topic = _topic_at(planned_topics, current_topic_index + 1)
-    expert_evaluations = _serialize(state.get("expert_evaluations")) or {}
+    expert_evaluations = _serialize(state.get("expert_evaluations_current_turn")) or {}
     ask_deeper = bool(report.flags.ask_deeper) if report and report.flags else False
     advance_topic = report.recommended_next_action == NextAction.CHANGE_TOPIC if report else False
 

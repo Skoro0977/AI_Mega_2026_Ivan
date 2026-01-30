@@ -41,14 +41,14 @@ class InterviewState(TypedDict, total=False):
     last_user_message: str
     planned_topics: list[str]
     current_topic_index: int
-    expert_evaluations: dict[ExpertRole, str]
+    expert_evaluations_current_turn: dict[ExpertRole, str]
     pending_expert_nodes: list[ExpertRole]
 
 
 class ExpertUpdate(TypedDict, total=False):
     """Partial state update emitted by the expert node."""
 
-    expert_evaluations: dict[ExpertRole, str]
+    expert_evaluations_current_turn: dict[ExpertRole, str]
     pending_expert_nodes: list[ExpertRole]
 
 
@@ -93,11 +93,11 @@ def create_expert_node(role: ExpertRole) -> Callable[[InterviewState], ExpertUpd
         evaluation = _extract_evaluation(result)
         text = _format_evaluation(evaluation)
 
-        updated = dict(state.get("expert_evaluations") or {})
+        updated = dict(state.get("expert_evaluations_current_turn") or {})
         updated[role] = text
         remaining = [item for item in (state.get("pending_expert_nodes") or []) if item != role]
         return {
-            "expert_evaluations": updated,
+            "expert_evaluations_current_turn": updated,
             "pending_expert_nodes": remaining,
         }
 

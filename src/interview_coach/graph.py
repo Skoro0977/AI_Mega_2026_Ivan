@@ -56,7 +56,7 @@ class InterviewState(TypedDict, total=False):
     asked_questions: list[str]
     planned_topics: list[str]
     current_topic_index: int
-    expert_evaluations: dict[ExpertRole, str]
+    expert_evaluations_current_turn: dict[ExpertRole, str]
     pending_expert_nodes: list[ExpertRole]
     turns: list[TurnLog]
     observer_reports: list[Any]

@@ -72,6 +72,7 @@ def run_scenario(path: str) -> str:
         "observer_reports": [],
         "skill_matrix": build_skill_baseline(),
         "stop_requested": False,
+        "expert_evaluations_current_turn": {},
     }
 
     graph = build_graph()
@@ -83,6 +84,7 @@ def run_scenario(path: str) -> str:
 
     for message in scripted_messages:
         state["last_user_message"] = message
+        state["expert_evaluations_current_turn"] = {}
         if str(message).strip().lower() in {"stop", "стоп", "стоп интервью"}:
             state["stop_requested"] = True
 

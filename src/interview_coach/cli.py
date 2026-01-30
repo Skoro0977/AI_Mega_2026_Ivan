@@ -188,6 +188,7 @@ def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
         "observer_reports": [],
         "skill_matrix": build_skill_baseline(),
         "stop_requested": False,
+        "expert_evaluations_current_turn": {},
         "pending_interviewer_message": None,
         "pending_internal_thoughts": None,
         "pending_report": None,
@@ -239,6 +240,7 @@ def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
                 state["stop_requested"] = True
                 stop_reason = "команда stop"
             state["last_user_message"] = user_message
+            state["expert_evaluations_current_turn"] = {}
         except EOFError:
             print("\nEOF: интервью завершается.", flush=True)
             state["stop_requested"] = True
