@@ -7,6 +7,22 @@ from enum import Enum
 from pydantic import BaseModel, Field, field_validator
 
 
+def _coerce_float(value: object, default: float) -> float:
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return default
+
+
+def _clamp(value: object, low: float, high: float) -> float:
+    numeric = _coerce_float(value, low)
+    if numeric < low:
+        return low
+    if numeric > high:
+        return high
+    return numeric
+
+
 class GradeTarget(str, Enum):
     INTERN = "intern"
     JUNIOR = "junior"
@@ -108,6 +124,16 @@ class ObserverReport(BaseModel):
     recommended_question_style: str
     fact_check_notes: str | None = None
     skills_delta: dict[str, float] | None = None
+
+    @field_validator("answer_quality", mode="before")
+    @classmethod
+    def clamp_answer_quality(cls, value: object) -> float:
+        return _clamp(value, 0.0, 5.0)
+
+    @field_validator("confidence", mode="before")
+    @classmethod
+    def clamp_confidence(cls, value: object) -> float:
+        return _clamp(value, 0.0, 1.0)
 
 
 class Decision(BaseModel):
