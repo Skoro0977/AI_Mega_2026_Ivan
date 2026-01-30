@@ -10,6 +10,7 @@ from typing import Any
 from src.interview_coach.graph import build_graph
 from src.interview_coach.logger import InterviewLogger
 from src.interview_coach.models import InterviewIntake, TurnLog
+from src.interview_coach.skills import build_skill_baseline
 
 
 def _load_scenario(path: str) -> dict[str, Any]:
@@ -68,6 +69,7 @@ def run_scenario(path: str) -> str:
         "asked_questions": [],
         "turns": [],
         "observer_reports": [],
+        "skill_matrix": build_skill_baseline(),
         "stop_requested": False,
     }
 

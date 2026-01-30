@@ -18,6 +18,7 @@ warnings.filterwarnings(
 from src.interview_coach.graph import build_graph
 from src.interview_coach.logger import InterviewLogger
 from src.interview_coach.models import GradeTarget, InterviewIntake, TurnLog
+from src.interview_coach.skills import build_skill_baseline
 
 STOP_COMMANDS = {"stop", "стоп", "стоп интервью"}
 
@@ -186,6 +187,7 @@ def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
         "asked_questions": [],
         "turns": [],
         "observer_reports": [],
+        "skill_matrix": build_skill_baseline(),
         "stop_requested": False,
         "pending_interviewer_message": None,
         "pending_internal_thoughts": None,
