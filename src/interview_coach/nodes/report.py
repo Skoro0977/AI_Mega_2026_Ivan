@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from collections.abc import Mapping
+from datetime import datetime
 from typing import Any, TypedDict
 
 from pydantic import BaseModel
 
 from src.interview_coach.agents import build_report_messages, get_report_agent
-from src.interview_coach.models import ExpertRole, FinalFeedback
+from src.interview_coach.models import ExpertRole, FinalFeedback, GradeTarget
 
 LOGGER = logging.getLogger(__name__)
 
@@ -33,6 +35,7 @@ class InterviewState(TypedDict, total=False):
     current_topic_index: int
     expert_evaluations: dict[ExpertRole, str]
     pending_expert_nodes: list[ExpertRole]
+    topics_covered: list[str]
 
 
 class ReportUpdate(TypedDict, total=False):
@@ -59,6 +62,8 @@ def run_report(state: InterviewState) -> ReportUpdate:
     summary = _summarize_feedback(feedback)
     if summary:
         update["final_feedback_text"] = summary
+    metrics = _collect_feedback_metrics(feedback, state)
+    LOGGER.info("Final feedback metrics: %s", metrics)
 
     return update
 
@@ -96,19 +101,113 @@ def _summarize_feedback(feedback: FinalFeedback) -> str:
     soft = feedback.soft_skills
     roadmap = feedback.roadmap
 
-    parts = [
-        f"Grade: {decision.grade}.",
-        f"Recommendation: {decision.recommendation}.",
-        f"Confidence: {decision.confidence_score:.2f}.",
-    ]
+    parts: list[str] = []
+    grade_label = _grade_label(decision.grade)
+    parts.append(f"В целом вы уверенно тянете уровень {grade_label}.")
     if hard.confirmed:
-        parts.append("Confirmed: " + "; ".join(hard.confirmed) + ".")
-    if hard.gaps_with_correct_answers:
-        gaps = ", ".join(hard.gaps_with_correct_answers.keys())
-        parts.append("Gaps: " + gaps + ".")
+        parts.append("Видно, что у вас есть реальный практический опыт: " + _join_items(hard.confirmed) + ".")
+    if soft.clarity or soft.honesty or soft.engagement:
+        soft_bits = [bit for bit in [soft.clarity, soft.honesty, soft.engagement] if bit]
+        if soft_bits:
+            parts.append("По софт-скиллам: " + " ".join(soft_bits).rstrip(".") + ".")
     if soft.examples:
-        parts.append("Examples: " + "; ".join(soft.examples) + ".")
+        parts.append("Примеры: " + _join_items(soft.examples) + ".")
+    if hard.gaps_with_correct_answers:
+        gaps_text = "; ".join(
+            f"{gap} — {answer}".rstrip(".")
+            for gap, answer in hard.gaps_with_correct_answers.items()
+        )
+        parts.append("Что можно усилить: " + gaps_text + ".")
     if roadmap.next_steps:
-        parts.append("Next steps: " + "; ".join(roadmap.next_steps) + ".")
+        parts.append("Рекомендации на следующий шаг: " + _join_items(roadmap.next_steps) + ".")
+    if decision.recommendation:
+        parts.append("Общая рекомендация: " + decision.recommendation.rstrip(".") + ".")
+    confidence_pct = int(round(decision.confidence_score * 100))
+    parts.append(f"Уверенность в оценке — примерно {confidence_pct}%.")
 
-    return " ".join(parts)
+    return "\n\n".join(parts).strip()
+
+
+_MESSAGE_REF_RE = re.compile(r"сообщен(?:ие|ия|ии)\s*№\s*(\d+)", re.IGNORECASE)
+
+
+def _collect_feedback_metrics(feedback: FinalFeedback, state: Mapping[str, Any]) -> dict[str, Any]:
+    decision = feedback.decision
+    hard = feedback.hard_skills
+    soft = feedback.soft_skills
+    roadmap = feedback.roadmap
+
+    confirmed = [_collect_item_metrics(item) for item in hard.confirmed]
+    gaps = [
+        {
+            "gap": gap,
+            "answer": answer,
+            "message_ids": _extract_message_ids(f"{gap} {answer}"),
+        }
+        for gap, answer in hard.gaps_with_correct_answers.items()
+    ]
+    examples = [_collect_item_metrics(item) for item in soft.examples]
+    next_steps = [_collect_item_metrics(item) for item in roadmap.next_steps]
+
+    message_ids: set[int] = set()
+    for collection in (confirmed, gaps, examples, next_steps):
+        for item in collection:
+            message_ids.update(item.get("message_ids", []))
+
+    turns = state.get("turns") or []
+    observer_reports = state.get("observer_reports") or []
+
+    return {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "report_model": state.get("report_model") or state.get("model"),
+        "grade": decision.grade.value if isinstance(decision.grade, GradeTarget) else str(decision.grade),
+        "confidence_score": decision.confidence_score,
+        "recommendation": decision.recommendation,
+        "counts": {
+            "confirmed": len(hard.confirmed),
+            "gaps": len(hard.gaps_with_correct_answers),
+            "examples": len(soft.examples),
+            "next_steps": len(roadmap.next_steps),
+            "turns": len(turns),
+            "observer_reports": len(observer_reports),
+        },
+        "message_sources": sorted(message_ids),
+        "evidence": {
+            "confirmed": confirmed,
+            "gaps": gaps,
+            "examples": examples,
+            "next_steps": next_steps,
+        },
+        "topics_covered": state.get("topics_covered") or [],
+    }
+
+
+def _extract_message_ids(text: str) -> list[int]:
+    return sorted({int(match.group(1)) for match in _MESSAGE_REF_RE.finditer(text)})
+
+
+def _collect_item_metrics(text: str) -> dict[str, Any]:
+    return {
+        "text": text,
+        "message_ids": _extract_message_ids(text),
+    }
+
+
+def _grade_label(grade: GradeTarget | Any) -> str:
+    if isinstance(grade, GradeTarget):
+        value = grade.value
+    else:
+        value = str(grade)
+    mapping = {
+        "intern": "intern-разработчика",
+        "junior": "junior-разработчика",
+        "middle": "middle-разработчика",
+        "senior": "senior-разработчика",
+        "staff": "staff-разработчика",
+        "principal": "principal-разработчика",
+    }
+    return mapping.get(value, value)
+
+
+def _join_items(items: list[str]) -> str:
+    return "; ".join(item.strip().rstrip(".") for item in items if item and item.strip())

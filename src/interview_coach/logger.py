@@ -63,10 +63,10 @@ def _coerce_feedback_text(feedback: str | dict[str, Any] | BaseModel) -> str:
 
 
 def validate_schema(log_dict: dict[str, Any]) -> None:
-    expected_top = {"participant_name", "turns", "final_feedback"}
+    required_top = {"participant_name", "turns", "final_feedback"}
     actual_top = set(log_dict.keys())
-    missing_top = expected_top - actual_top
-    extra_top = actual_top - expected_top
+    missing_top = required_top - actual_top
+    extra_top = actual_top - required_top
     if missing_top or extra_top:
         raise ValueError(
             f"Invalid log schema (top-level keys). Missing: {sorted(missing_top)}; Extra: {sorted(extra_top)}"

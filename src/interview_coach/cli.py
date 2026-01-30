@@ -288,7 +288,6 @@ def run_cli(max_turns: int = 30, run_path: str | None = None) -> None:
             last_printed_message = last_message
 
         final_feedback = state.get("final_feedback")
-        final_feedback_text = state.get("final_feedback_text")
         if final_feedback is not None:
             _finalize_and_save(
                 state,
